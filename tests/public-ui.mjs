@@ -63,7 +63,7 @@ try {
     assert.equal(await page.locator('#koleksi select[name="urut"]').inputValue(),"termurah");
     await page.locator('#koleksi input[name="q"]').fill("judul-tidak-ada-987654");
     await page.locator('#koleksi button[type="submit"]').click();
-    assert.ok(await page.getByText("Tidak ada buku yang sesuai dengan pencarian atau kategori pilihan.").isVisible());
+    await page.getByText("Tidak ada buku yang sesuai dengan pencarian atau kategori pilihan.").waitFor({state:"visible"});
     await page.getByRole("link",{name:"Tampilkan semua koleksi"}).click();
     await page.waitForURL(url=>!url.searchParams.has("q"));
   });
@@ -104,11 +104,11 @@ try {
     assert.ok(href?.startsWith("https://wa.me/"));
     assert.ok(href.includes("text="));
     await page.getByRole("button",{name:/Simpan favorit/}).click();
-    assert.ok(await page.getByRole("button",{name:/Tersimpan/}).isVisible());
+    await page.getByRole("button",{name:/Tersimpan/}).waitFor({state:"visible"});
     await page.goto(origin+"/favorit",{waitUntil:"domcontentloaded"});
-    assert.ok(await page.getByRole("button",{name:"Hapus favorit"}).isVisible());
+    await page.getByRole("button",{name:"Hapus favorit"}).waitFor({state:"visible"});
     await page.getByRole("button",{name:"Hapus favorit"}).click();
-    assert.ok(await page.getByText(/Belum ada buku favorit/).isVisible());
+    await page.getByText(/Belum ada buku favorit/).waitFor({state:"visible"});
   });
   await check("Bagikan buku dan validasi ulasan", async()=>{
     await page.goto(origin+detail,{waitUntil:"domcontentloaded"});
