@@ -1,11 +1,12 @@
 {
-  "name": "katalog-umkm",
+  "name": "biblio-digital-library",
   "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "dev:webpack": "next dev --webpack"
   },
   "engines": {
     "node": ">=20.9.0"

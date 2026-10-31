@@ -77,7 +77,7 @@ export default function HalamanKatalog() {
             </h2>
           </div>
           <p className="max-w-[260px] text-sm leading-6 text-teks-lembut">
-            Enam karya klasik sebagai pengantar koleksi.
+            Karya klasik yang membuka jalan bagi percakapan lintas generasi.
           </p>
         </div>
         {daftarProduk.length > 0 ? (
