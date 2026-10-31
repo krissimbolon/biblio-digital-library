@@ -30,6 +30,7 @@ export async function changePassword(data) {
   if (password.length<8) redirect("/admin/password?error=length");
   if (password!==confirm) redirect("/admin/password?error=mismatch");
   const {error}=await supabase.auth.updateUser({password});
+  if (error?.code==="same_password") redirect("/admin/password?error=same");
   if (error) redirect("/admin/password?error=save");
   redirect("/admin/password?status=success");
 }
