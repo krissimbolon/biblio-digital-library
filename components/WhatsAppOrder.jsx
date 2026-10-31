@@ -3,8 +3,9 @@ import {useState} from "react";
 
 export default function WhatsAppOrder({nomor,id,nama,harga}) {
   const [jumlah,setJumlah]=useState(1);
+  const rupiah=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(n);
   const total=Number(harga)*jumlah;
-  const pesan="Halo Biblio, saya ingin memesan "+nama+" sebanyak "+jumlah+" eksemplar (total "+new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(total)+").";
+  const pesan="Halo Biblio, saya mau pesan "+nama+" ("+rupiah(Number(harga))+") sebanyak "+jumlah+" eksemplar, total "+rupiah(total)+".";
   const href="https://wa.me/"+nomor+"?text="+encodeURIComponent(pesan);
   function recordClick(){
     navigator.sendBeacon?.("/api/wa-click",new Blob([JSON.stringify({id})],{type:"application/json"}));
