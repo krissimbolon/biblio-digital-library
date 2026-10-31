@@ -1,0 +1,46 @@
+name: Production verification
+on:
+  workflow_run:
+    workflows: ["Build and security checks"]
+    types: [completed]
+
+jobs:
+  public-routes:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Verify catalog and security headers
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://biblio-digital-library.vercel.app"
+          ready=0
+          for attempt in $(seq 1 18); do
+            response=$(curl -LsS --max-time 15 -D /tmp/biblio-headers -o /tmp/biblio-body -w '%{http_code}' "$base/" || true)
+            if [ "$response" = "200" ] && grep -iqE "^content-security-policy:.*nonce-" /tmp/biblio-headers; then
+              ready=1
+              break
+            fi
+            sleep 5
+          done
+          [ "$ready" -eq 1 ] || { echo "Halaman utama atau CSP belum tersedia"; exit 1; }
+          grep -qi "X-Content-Type-Options: nosniff" /tmp/biblio-headers
+          grep -qi "X-Frame-Options: DENY" /tmp/biblio-headers
+          grep -qiE "^content-security-policy:.*script-src" /tmp/biblio-headers
+          if grep -i '^content-security-policy:' /tmp/biblio-headers | grep -Eo "script-src[^;]*" | grep -q "unsafe-eval"; then
+            echo "Kebijakan skrip produksi masih mengizinkan unsafe-eval"
+            exit 1
+          fi
+          status=$(curl -LsS --max-time 15 -o /dev/null -w '%{http_code}' "$base/produk/999999999")
+          [ "$status" = "404" ] || { echo "Produk tak ditemukan mengembalikan $status"; exit 1; }
+          status=$(curl -LsS --max-time 15 -o /dev/null -w '%{http_code}' "$base/kategori/tidak-ada-sekali")
+          [ "$status" = "404" ] || { echo "Kategori tak ditemukan mengembalikan $status"; exit 1; }
+          curl -fsS --max-time 15 "$base/api/health" | grep -q '"status":"ok"'
+          curl -fsS --max-time 15 "$base/manifest.webmanifest" | grep -q '"display":"standalone"'
+          curl -fsS --max-time 15 "$base/sitemap.xml" | grep -q "urlset"
+          curl -fsS --max-time 15 "$base/robots.txt" | grep -q "sitemap"
+          curl -sSI --max-time 15 "$base/admin" > /tmp/biblio-admin
+          grep -qiE '^location: .*\/admin\/login' /tmp/biblio-admin
+          echo "Katalog dan rute publik terverifikasi"
