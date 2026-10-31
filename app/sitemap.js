@@ -1,0 +1,2 @@
+import {catalogClient} from "@/lib/supabase/catalog";
+export default async function sitemap(){const base="https://biblio-digital-library.vercel.app";try{const {data,error}=await catalogClient().from("produk").select("id,created_at").order("id").limit(5000);if(error)throw Error("query failed");return [{url:base,lastModified:new Date()},...(data||[]).map(p=>({url:base+"/produk/"+p.id,lastModified:new Date(p.created_at||Date.now())}))]}catch{return [{url:base,lastModified:new Date()}]}}
