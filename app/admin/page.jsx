@@ -9,8 +9,10 @@ export default async function HalamanAdmin({searchParams}) {
   const params=await searchParams;
   const page=Math.max(1,Number(params?.page)||1);
   const q=String(params?.q||"").slice(0,80);
-  const {products,pages,count}=await productsPage({page,size:20,q});
-  const stats=await productsPage({size:1000});
+  const {products,pages,count}=await productsPage({page,size:20,q,includeInactive:true});
+  const stats=await productsPage({size:1000,includeInactive:true});
+  const aktif=stats.products.filter(b=>b.aktif).length;
+  const habis=stats.products.filter(b=>Number(b.stok)===0).length;
   const kategori=stats.products.reduce((acc,b)=>{const key=b.kategori||"Lainnya";acc[key]=(acc[key]||0)+1;return acc},{});
   let ranking=[];
   try {
@@ -26,7 +28,7 @@ export default async function HalamanAdmin({searchParams}) {
   return <section className="flex flex-col gap-7 py-10">
     <NavAdmin/>
     <div className="flex flex-wrap items-center justify-between gap-4">
-      <div><h1 className="font-serif text-3xl">Kelola koleksi</h1><p className="mt-2 text-sm text-teks-lembut">{count} buku</p></div>
+      <div><h1 className="font-serif text-3xl">Kelola koleksi</h1><p className="mt-2 text-sm text-teks-lembut">{stats.count} buku, {aktif} tampil di katalog, {habis} stok habis</p></div>
       <Tombol href="/admin/produk/baru">Tambah buku</Tombol>
     </div>
     <section className="grid gap-3 sm:grid-cols-3" aria-label="Ringkasan kategori">

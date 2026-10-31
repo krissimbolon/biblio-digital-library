@@ -2,6 +2,8 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { sessionClient, requireAdmin } from "@/lib/supabase/server";
+import { catalogClient } from "@/lib/supabase/catalog";
+import { slugify } from "@/lib/format";
 
 export async function login(data) {
   const email=String(data.get("email")||"").trim();
@@ -35,44 +37,142 @@ export async function changePassword(data) {
   redirect("/admin/password?status=success");
 }
 
+function angka(form, nama) {
+  const nilai = String(form.get(nama) ?? "").trim();
+  return nilai === "" ? null : Number(nilai);
+}
+
 function parseProduct(form) {
-  const nama=String(form.get("nama")||"").trim().slice(0,160);
-  const harga=Number(form.get("harga"));
-  const kategori=String(form.get("kategori")||"").trim().slice(0,80);
-  const deskripsi=String(form.get("deskripsi")||"").trim().slice(0,4000);
-  const foto_url=String(form.get("foto_url")||"").trim().slice(0,1024);
-  if (!nama || !Number.isSafeInteger(harga) || harga<0 || harga>2000000000) return null;
+  const nama = String(form.get("nama") || "").trim().slice(0, 160);
+  const harga = angka(form, "harga");
+  const harga_diskon = angka(form, "harga_diskon");
+  const stok = angka(form, "stok");
+  const kategori = String(form.get("kategori") || "").trim().slice(0, 80);
+  const deskripsi = String(form.get("deskripsi") || "").trim().slice(0, 4000);
+  const foto_url = String(form.get("foto_url") || "").trim().slice(0, 1024);
+  if (!nama || !Number.isSafeInteger(harga) || harga < 0 || harga > 2000000000) return null;
+  if (harga_diskon !== null && (!Number.isSafeInteger(harga_diskon) || harga_diskon < 0 || harga_diskon >= harga)) return null;
+  if (stok === null || !Number.isSafeInteger(stok) || stok < 0 || stok > 100000) return null;
   if (foto_url && !foto_url.startsWith("/") && !foto_url.startsWith("https://")) return null;
-  return {nama,harga,kategori,deskripsi,foto_url:foto_url||null};
+  return { nama, harga, harga_diskon, stok, kategori: kategori || null, deskripsi, foto_url: foto_url || null, aktif: form.get("aktif") === "on" };
+}
+
+async function catatLog(user, aksi, target) {
+  try {
+    await catalogClient().from("admin_log").insert({ admin_id: user.id, admin_email: user.email, aksi, target: String(target || "").slice(0, 200) });
+  } catch {}
+}
+
+function segarkan(id) {
+  revalidatePath("/");
+  revalidatePath("/admin");
+  if (id) revalidatePath("/produk/" + id);
 }
 
 export async function addProduct(form) {
-  const {supabase}=await requireAdmin();
-  const values=parseProduct(form);
+  const { supabase, user } = await requireAdmin();
+  const values = parseProduct(form);
   if (!values) redirect("/admin/produk/baru?error=invalid");
-  const {error}=await supabase.from("produk").insert(values);
+  const { data: akhir } = await supabase.from("produk").select("urutan").order("urutan", { ascending: false }).limit(1).maybeSingle();
+  const { data, error } = await supabase.from("produk").insert({ ...values, urutan: (akhir?.urutan || 0) + 1 }).select("id").single();
   if (error) redirect("/admin/produk/baru?error=save");
-  revalidatePath("/");
+  await catatLog(user, "Tambah buku", values.nama + " (#" + data.id + ")");
+  segarkan();
   redirect("/admin");
 }
 
-export async function editProduct(id,form) {
-  const {supabase}=await requireAdmin();
-  const values=parseProduct(form);
-  if (!values) redirect("/admin/produk/"+id+"/ubah?error=invalid");
-  const {error}=await supabase.from("produk").update(values).eq("id",id);
-  if (error) redirect("/admin/produk/"+id+"/ubah?error=save");
-  revalidatePath("/");
-  revalidatePath("/produk/"+id);
+export async function editProduct(id, form) {
+  const { supabase, user } = await requireAdmin();
+  const values = parseProduct(form);
+  if (!values) redirect("/admin/produk/" + id + "/ubah?error=invalid");
+  const { error } = await supabase.from("produk").update(values).eq("id", id);
+  if (error) redirect("/admin/produk/" + id + "/ubah?error=save");
+  await catatLog(user, "Ubah buku", values.nama + " (#" + id + ")");
+  segarkan(id);
   redirect("/admin");
 }
 
 export async function deleteProduct(form) {
-  const {supabase}=await requireAdmin();
-  const id=Number(form.get("id"));
-  if (!Number.isSafeInteger(id)||id<1) throw new Error("Buku tidak valid");
-  const {error}=await supabase.from("produk").delete().eq("id",id);
+  const { supabase, user } = await requireAdmin();
+  const id = Number(form.get("id"));
+  if (!Number.isSafeInteger(id) || id < 1) throw new Error("Buku tidak valid");
+  const { data: buku } = await supabase.from("produk").select("nama").eq("id", id).maybeSingle();
+  const { error } = await supabase.from("produk").delete().eq("id", id);
   if (error) throw new Error("Buku gagal dihapus");
-  revalidatePath("/");
-  revalidatePath("/admin");
+  await catatLog(user, "Hapus buku", (buku?.nama || "Buku") + " (#" + id + ")");
+  segarkan(id);
+}
+
+export async function toggleProduct(form) {
+  const { supabase, user } = await requireAdmin();
+  const id = Number(form.get("id"));
+  if (!Number.isSafeInteger(id) || id < 1) return;
+  const { data: buku } = await supabase.from("produk").select("nama,aktif").eq("id", id).maybeSingle();
+  if (!buku) return;
+  await supabase.from("produk").update({ aktif: !buku.aktif }).eq("id", id);
+  await catatLog(user, buku.aktif ? "Nonaktifkan buku" : "Aktifkan buku", buku.nama + " (#" + id + ")");
+  segarkan(id);
+}
+
+export async function moveProduct(form) {
+  const { supabase, user } = await requireAdmin();
+  const id = Number(form.get("id"));
+  const arah = form.get("arah") === "naik" ? "naik" : "turun";
+  if (!Number.isSafeInteger(id) || id < 1) return;
+  const { data: buku } = await supabase.from("produk").select("id,nama,urutan").eq("id", id).maybeSingle();
+  if (!buku) return;
+  let query = supabase.from("produk").select("id,urutan");
+  query = arah === "naik"
+    ? query.lt("urutan", buku.urutan).order("urutan", { ascending: false })
+    : query.gt("urutan", buku.urutan).order("urutan", { ascending: true });
+  const { data: tetangga } = await query.limit(1).maybeSingle();
+  if (!tetangga) return;
+  await supabase.from("produk").update({ urutan: tetangga.urutan }).eq("id", buku.id);
+  await supabase.from("produk").update({ urutan: buku.urutan }).eq("id", tetangga.id);
+  await catatLog(user, "Ubah urutan buku", buku.nama + " (" + arah + ")");
+  segarkan();
+}
+
+export async function addCategory(form) {
+  const { user } = await requireAdmin();
+  const nama = String(form.get("nama") || "").trim().slice(0, 80);
+  const slug = slugify(nama);
+  if (!nama || !slug) redirect("/admin/kategori?error=nama");
+  const { error } = await catalogClient().from("kategori").insert({ nama, slug });
+  if (error) redirect("/admin/kategori?error=duplikat");
+  await catatLog(user, "Tambah kategori", nama);
+  segarkan();
+  redirect("/admin/kategori?status=tambah");
+}
+
+export async function renameCategory(form) {
+  const { user } = await requireAdmin();
+  const id = Number(form.get("id"));
+  const nama = String(form.get("nama") || "").trim().slice(0, 80);
+  const slug = slugify(nama);
+  if (!Number.isSafeInteger(id) || !nama || !slug) redirect("/admin/kategori?error=nama");
+  const client = catalogClient();
+  const { data: lama } = await client.from("kategori").select("nama").eq("id", id).maybeSingle();
+  if (!lama) redirect("/admin/kategori?error=nama");
+  const { error } = await client.from("kategori").update({ nama, slug }).eq("id", id);
+  if (error) redirect("/admin/kategori?error=duplikat");
+  await client.from("produk").update({ kategori: nama }).eq("kategori", lama.nama);
+  await catatLog(user, "Ubah kategori", lama.nama + " → " + nama);
+  segarkan();
+  redirect("/admin/kategori?status=ubah");
+}
+
+export async function deleteCategory(form) {
+  const { user } = await requireAdmin();
+  const id = Number(form.get("id"));
+  if (!Number.isSafeInteger(id)) redirect("/admin/kategori?error=nama");
+  const client = catalogClient();
+  const { data: kategori } = await client.from("kategori").select("nama").eq("id", id).maybeSingle();
+  if (!kategori) redirect("/admin/kategori?error=nama");
+  const { count } = await client.from("produk").select("id", { count: "exact", head: true }).eq("kategori", kategori.nama);
+  if (count > 0) redirect("/admin/kategori?error=dipakai&jumlah=" + count);
+  await client.from("kategori").delete().eq("id", id);
+  await catatLog(user, "Hapus kategori", kategori.nama);
+  segarkan();
+  redirect("/admin/kategori?status=hapus");
 }
