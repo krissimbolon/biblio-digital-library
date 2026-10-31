@@ -1,5 +1,6 @@
 import Link from "next/link";
 import KartuProduk from "@/components/KartuProduk";
+import RecentlyViewed from "@/components/RecentlyViewed";
 import { productsPage } from "@/lib/supabase/catalog";
 import { toko } from "@/lib/toko";
 
@@ -10,10 +11,11 @@ export default async function HalamanKatalog({searchParams}) {
   const category=String(params?.kategori||"").slice(0,80);
   const sort=String(params?.urut||"terbaru");
   const page=Math.max(1,Number(params?.page)||1);
-  let daftarProduk=[],pages=1,error="";
+  let daftarProduk=[],pages=1,error="",recentCatalog=[];
   try {
     const result=await productsPage({q,category,sort,page,size:12});
     daftarProduk=result.products;pages=result.pages;
+    recentCatalog=(await productsPage({size:500})).products;
   } catch {error="Katalog belum dapat dimuat. Periksa kembali beberapa saat lagi.";}
   const pilihan = daftarProduk[0];
 
@@ -116,6 +118,7 @@ export default async function HalamanKatalog({searchParams}) {
         </nav>}
       </section>
 
+      <RecentlyViewed products={recentCatalog}/>
       <section id="tentang" className="scroll-mt-24 border-t border-garis py-12 sm:py-16">
         <div className="grid gap-4 sm:grid-cols-[1fr_1.4fr] sm:gap-14">
           <h2 className="font-serif text-3xl tracking-tight">Tentang Biblio</h2>
