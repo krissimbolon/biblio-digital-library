@@ -6,7 +6,7 @@ import { hargaAkhir, formatRupiah } from "@/lib/format";
 const KEY="biblio:cart";
 export default function CartView({ produk, nomor }) {
   const [cart,setCart]=useState(null);
-  useEffect(()=>{try{const x=JSON.parse(localStorage.getItem(KEY)||"[]");setCart(Array.isArray(x)?x:[]);}catch{setCart([])}},[]);
+  useEffect(()=>{try{const x=JSON.parse(localStorage.getItem(KEY)||"[]");setCart(Array.isArray(x)?x.filter(v=>v&&Number.isSafeInteger(Number(v.id))&&Number(v.qty)>0):[]);}catch{setCart([])}},[]);
   function save(next){setCart(next);try{localStorage.setItem(KEY,JSON.stringify(next));window.dispatchEvent(new Event("biblio:cart-change"));}catch{}}
   if(cart===null)return <p className="text-teks-lembut">Memuat keranjang…</p>;
   const items=cart.map(x=>({book:produk.find(p=>Number(p.id)===Number(x.id)),qty:Math.max(1,Math.min(99,Number(x.qty)||1))})).filter(x=>x.book&&Number(x.book.stok)>0);
@@ -19,7 +19,10 @@ export default function CartView({ produk, nomor }) {
   }
   const pesan="Halo Biblio, saya ingin memesan:\n"+items.map((x,i)=>(i+1)+". "+x.book.nama+" — "+Math.min(x.qty,x.book.stok)+" × "+formatRupiah(hargaAkhir(x.book))+" = "+formatRupiah(Math.min(x.qty,x.book.stok)*hargaAkhir(x.book))).join("\n")+"\nTotal: "+formatRupiah(total)+".";
   return <div className="space-y-6">
-    {missing>0&&<p role="status" className="text-sm text-bahaya">{missing} buku tidak tersedia atau stoknya habis. Buku tersebut tidak dimasukkan ke pesanan.</p>}
+    {missing>0&&<div role="status" className="flex flex-wrap items-center gap-3 text-sm text-bahaya">
+      <p>{missing} buku tidak tersedia atau stoknya habis. Buku tersebut tidak dimasukkan ke pesanan.</p>
+      <button type="button" onClick={()=>save(cart.filter(x=>produk.some(p=>Number(p.id)===Number(x.id)&&Number(p.stok)>0)))} className="font-semibold underline">Bersihkan item tidak tersedia</button>
+    </div>}
     {!items.length&&<p className="rounded-lg border border-garis bg-permukaan p-6 text-teks-lembut">Keranjang belum berisi buku yang tersedia. <Link href="/#koleksi" className="underline">Jelajahi koleksi</Link>.</p>}
     {items.map(({book,qty})=><div key={book.id} className="flex flex-wrap items-center gap-5 rounded-lg border border-garis p-4">
       <img src={book.foto_url} alt="" className="h-24 w-16 rounded-sm bg-permukaan object-cover"/>
@@ -31,5 +34,6 @@ export default function CartView({ produk, nomor }) {
       <div><p className="text-sm text-teks-lembut">Total pemesanan</p><strong className="font-serif text-2xl">{formatRupiah(total)}</strong></div>
       <a href={"https://wa.me/"+nomor+"?text="+encodeURIComponent(pesan)} target="_blank" rel="noopener noreferrer" onClick={catatPesanan} className="rounded-md bg-utama px-5 py-3 text-sm font-semibold text-white">Pesan semua via WhatsApp</a>
     </div>}
+    {cart.length>0&&<button type="button" onClick={()=>save([])} className="text-sm font-semibold text-bahaya underline">Kosongkan keranjang</button>}
   </div>;
 }

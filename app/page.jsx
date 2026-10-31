@@ -103,7 +103,7 @@ export default async function HalamanKatalog({searchParams}) {
             Karya klasik yang membuka jalan bagi percakapan lintas generasi.
           </p>
         </div>
-        <form className="mb-8 grid gap-3 rounded-lg border border-garis bg-latar p-4 sm:grid-cols-[1fr_170px_160px_auto]">
+        <form method="get" action="/#koleksi" className="mb-8 grid gap-3 rounded-lg border border-garis bg-latar p-4 sm:grid-cols-[1fr_170px_160px_auto]">
           <input name="q" aria-label="Cari judul buku" defaultValue={q} placeholder="Cari judul buku" className="min-w-0 rounded-md border border-garis bg-latar px-3 py-2 text-sm" />
           <select name="kategori" aria-label="Kategori buku" defaultValue={category} className="min-w-0 rounded-md border border-garis bg-latar px-3 py-2 text-sm">
             <option value="">Semua kategori</option>
@@ -121,10 +121,11 @@ export default async function HalamanKatalog({searchParams}) {
               <KartuProduk key={produk.id} produk={produk} terlaris={terlaris.has(produk.id)} />
             ))}
           </div>
-        ) : (
-          <p className="rounded-lg border border-garis bg-permukaan p-8 text-teks-lembut">
-            Belum ada buku dalam koleksi.
-          </p>
+        ) : !error && (
+          <div className="rounded-lg border border-garis bg-permukaan p-8 text-teks-lembut">
+            <p>{q || category ? "Tidak ada buku yang sesuai dengan pencarian atau kategori pilihan." : "Belum ada buku dalam koleksi."}</p>
+            {(q || category) && <Link href="/#koleksi" className="mt-3 inline-block font-semibold text-utama underline">Tampilkan semua koleksi</Link>}
+          </div>
         )}
         {!error && <nav className="mt-9 flex items-center gap-5 text-sm" aria-label="Halaman katalog">
           {page>1 && <Link href={"/?"+new URLSearchParams({q,kategori:category,urut:sort,page:String(page-1)})+"#koleksi"} className="font-semibold text-utama underline">Sebelumnya</Link>}
