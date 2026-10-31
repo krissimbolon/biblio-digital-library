@@ -62,3 +62,7 @@ npm run dev
 Ruang untuk buku, pengetahuan, dan ide-ide yang melampaui zaman.
 
 Dibuat dengan sepenuh hati oleh Chris Simbolon.
+
+## Kebijakan keamanan
+
+Aturan akses database dan pembatasan permintaan tercantum dalam `docs/biblio-security.sql`. Halaman administrator hanya tersedia untuk akun aktif yang telah tercatat. Kebijakan keamanan konten halaman menggunakan nonce per permintaan. Pengujian akses, pembatasan kiriman, dan dependensi tercantum di `docs/checklist-keamanan.md`.

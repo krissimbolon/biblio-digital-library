@@ -1,1 +1,0 @@
-export default function LoadingKategori(){return <div role="status" className="py-24 text-center text-sm text-teks-lembut">Memuat kategori buku…</div>;}

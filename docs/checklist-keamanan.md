@@ -11,3 +11,14 @@ Cek semua poin ini sebelum mengumpulkan karya. Poin ini juga dipakai saat penila
 - [ ] RLS di tabel `produk` aktif (Supabase > Table Editor > produk: tidak ada label "RLS disabled").
 - [ ] Tidak ada email, password, atau kunci yang ditulis di kode.
 - [ ] (Bonus) Aksi tambah, ubah, dan hapus produk ditolak jika tidak login.
+
+## Pembatasan akses dan permintaan
+
+- [ ] Permintaan ke tabel `produk` dengan sesi nonadministrator ditolak oleh RLS.
+- [ ] Fungsi `private.biblio_has_access()` hanya mengevaluasi akun administrator aktif.
+- [ ] Fungsi `public.biblio_consume_limit` hanya dapat dipanggil oleh `service_role`.
+- [ ] Login dibatasi berdasarkan sumber permintaan.
+- [ ] Kebijakan CSP halaman menggunakan nonce unik, tanpa `unsafe-inline` dan `unsafe-eval` pada `script-src` produksi.
+- [ ] Status HTTP halaman produk dan kategori yang tidak ditemukan adalah 404.
+- [ ] Pemeriksaan dependensi melalui GitHub Actions lulus.
+- [ ] Password administrator bawaan tidak berlaku dan perlindungan password bocor aktif.
