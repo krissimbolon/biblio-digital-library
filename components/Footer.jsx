@@ -15,7 +15,7 @@ export default function Footer() {
         </div>
         <div className="flex flex-col items-start gap-3 sm:items-end">
           <Link href="/#koleksi" className="hover:text-utama">Jelajahi koleksi</Link>
-          <Link href="/#tentang" className="hover:text-utama">Tentang Biblio</Link>
+          <Link href="/tentang" className="hover:text-utama">Tentang Biblio</Link>
           <Link href="/admin/login" className="text-teks-lembut hover:text-utama">Masuk admin</Link>
         </div>
       </div>
