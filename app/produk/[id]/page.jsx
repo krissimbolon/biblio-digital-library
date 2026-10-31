@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import TombolWhatsApp from "@/components/TombolWhatsApp";
 import { productById, productsPage } from "@/lib/supabase/catalog";
 import KartuProduk from "@/components/KartuProduk";
+import LibraryActions from "@/components/LibraryActions";
 import { formatRupiah } from "@/lib/format";
 
 // US-02 akan mengganti sumber data ini dengan pembacaan Supabase di server.
@@ -34,6 +35,7 @@ export default async function HalamanDetailProduk({ params }) {
         <p className="text-lg font-bold text-utama">{Number(produk.harga) === 0 ? "Gratis" : formatRupiah(produk.harga)}</p>
         <p className="max-w-prose text-base leading-8 text-teks-lembut">{produk.deskripsi}</p>
         <TombolWhatsApp produk={produk} />
+        <LibraryActions id={produk.id}/>
       </div>
     </article>
     {recommendations.length>0 && <section className="border-t border-garis py-12"><h2 className="mb-8 font-serif text-2xl">Buku terkait</h2><div className="grid grid-cols-2 gap-5 md:grid-cols-4">{recommendations.map(book=><KartuProduk key={book.id} produk={book}/>)}</div></section>}</>
