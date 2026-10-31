@@ -14,6 +14,7 @@ export default async function Footer() {
           <p className="mt-5 max-w-sm leading-6 text-teks-lembut">
             Ruang untuk buku, pengetahuan, dan ide-ide yang melampaui zaman.
           </p>
+          <p className="mt-2 text-xs leading-5 text-teks-lembut">{toko.jamBuka}</p>
         </div>
         <div className="flex flex-col items-start gap-3 sm:items-end">
           <Link href="/#koleksi" className="hover:text-utama">Jelajahi koleksi</Link>

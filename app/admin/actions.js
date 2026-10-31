@@ -45,18 +45,32 @@ function angka(form, nama) {
 }
 
 function parseProduct(form) {
-  const nama = String(form.get("nama") || "").trim().slice(0, 160);
+  const raw = Object.fromEntries([...form.entries()].filter(([, v]) => typeof v === "string"));
+  raw.aktif = form.get("aktif") === "on";
+  const errors = {};
+  const nama = String(raw.nama || "").trim();
   const harga = angka(form, "harga");
   const harga_diskon = angka(form, "harga_diskon");
   const stok = angka(form, "stok");
-  const kategori = String(form.get("kategori") || "").trim().slice(0, 80);
-  const deskripsi = String(form.get("deskripsi") || "").trim().slice(0, 4000);
-  const foto_url = String(form.get("foto_url") || "").trim().slice(0, 1024);
-  if (!nama || !Number.isSafeInteger(harga) || harga < 0 || harga > 2000000000) return null;
-  if (harga_diskon !== null && (!Number.isSafeInteger(harga_diskon) || harga_diskon < 0 || harga_diskon >= harga)) return null;
-  if (stok === null || !Number.isSafeInteger(stok) || stok < 0 || stok > 100000) return null;
-  if (foto_url && !foto_url.startsWith("/") && !foto_url.startsWith("https://")) return null;
-  return { nama, harga, harga_diskon, stok, kategori: kategori || null, deskripsi, foto_url: foto_url || null, aktif: form.get("aktif") === "on" };
+  const kategori = String(raw.kategori || "").trim();
+  const deskripsi = String(raw.deskripsi || "").trim();
+  const foto_url = String(raw.foto_url || "").trim();
+  if (!nama || nama.length > 160) errors.nama = "Isi judul buku (maksimal 160 karakter).";
+  if (!Number.isSafeInteger(harga) || harga <= 0 || harga > 2000000000)
+    errors.harga = "Harga harus bilangan bulat positif, maksimal Rp2.000.000.000.";
+  if (harga_diskon !== null && (!Number.isSafeInteger(harga_diskon) || harga_diskon < 0 || harga_diskon >= harga))
+    errors.harga_diskon = "Harga diskon harus lebih kecil daripada harga normal.";
+  if (!Number.isSafeInteger(stok) || stok < 0 || stok > 100000)
+    errors.stok = "Stok harus bilangan bulat dari 0 sampai 100.000.";
+  if (kategori.length > 80) errors.kategori = "Kategori maksimal 80 karakter.";
+  if (deskripsi.length > 4000) errors.deskripsi = "Deskripsi maksimal 4.000 karakter.";
+  if (foto_url.length > 1024 || (foto_url && !(foto_url.startsWith("https://") || (foto_url.startsWith("/") && !foto_url.startsWith("//")))))
+    errors.foto_url = "Gunakan URL HTTPS atau path situs yang valid.";
+  return { errors, raw, values: { nama, harga, harga_diskon, stok, kategori: kategori || null, deskripsi, foto_url: foto_url || null, aktif: raw.aktif } };
+}
+
+function formError(previous, parsed, key, message) {
+  return { values: parsed.raw, errors: { ...parsed.errors, [key]: message }, attempt: (previous?.attempt || 0) + 1 };
 }
 
 const BATAS_FOTO = 2 * 1024 * 1024;
@@ -109,29 +123,32 @@ function segarkan(id) {
   if (id) revalidatePath("/produk/" + id);
 }
 
-export async function addProduct(form) {
+export async function addProduct(previous, form) {
   const { supabase, user } = await requireAdmin();
-  const values = parseProduct(form);
-  if (!values) redirect("/admin/produk/baru?error=invalid");
-  const prepared = await gambarProduk(form, values);
-  if (prepared.error) redirect("/admin/produk/baru?error=" + prepared.error);
+  const parsed = parseProduct(form);
+  if (Object.keys(parsed.errors).length) return { errors: parsed.errors, values: parsed.raw, attempt: (previous?.attempt || 0) + 1 };
+  const prepared = await gambarProduk(form, parsed.values);
+  if (prepared.error) return formError(previous, parsed, prepared.error === "file" ? "sampul_file" : prepared.error === "galeri" ? "galeri_urls" : "form",
+    prepared.error === "file" ? "Unggah JPG, PNG, atau WebP maksimal 2 MB per foto dan lima berkas galeri." : prepared.error === "galeri" ? "Periksa alamat gambar galeri (maksimal enam)." : "Foto gagal diunggah.");
   const { data: akhir } = await supabase.from("produk").select("urutan").order("urutan", { ascending: false }).limit(1).maybeSingle();
   const { data, error } = await supabase.from("produk").insert({ ...prepared.values, urutan: (akhir?.urutan || 0) + 1 }).select("id").single();
-  if (error) redirect("/admin/produk/baru?error=save");
-  await catatLog(user, "Tambah buku", values.nama + " (#" + data.id + ")");
+  if (error) return formError(previous, parsed, "form", "Buku gagal disimpan. Periksa data dan coba kembali.");
+  await catatLog(user, "Tambah buku", parsed.values.nama + " (#" + data.id + ")");
   segarkan();
   redirect("/admin");
 }
 
-export async function editProduct(id, form) {
+export async function editProduct(id, previous, form) {
   const { supabase, user } = await requireAdmin();
-  const values = parseProduct(form);
-  if (!values) redirect("/admin/produk/" + id + "/ubah?error=invalid");
-  const prepared = await gambarProduk(form, values);
-  if (prepared.error) redirect("/admin/produk/" + id + "/ubah?error=" + prepared.error);
+  if (!Number.isSafeInteger(Number(id)) || Number(id) < 1) redirect("/admin");
+  const parsed = parseProduct(form);
+  if (Object.keys(parsed.errors).length) return { errors: parsed.errors, values: parsed.raw, attempt: (previous?.attempt || 0) + 1 };
+  const prepared = await gambarProduk(form, parsed.values);
+  if (prepared.error) return formError(previous, parsed, prepared.error === "file" ? "sampul_file" : prepared.error === "galeri" ? "galeri_urls" : "form",
+    prepared.error === "file" ? "Unggah JPG, PNG, atau WebP maksimal 2 MB per foto dan lima berkas galeri." : prepared.error === "galeri" ? "Periksa alamat gambar galeri (maksimal enam)." : "Foto gagal diunggah.");
   const { error } = await supabase.from("produk").update(prepared.values).eq("id", id);
-  if (error) redirect("/admin/produk/" + id + "/ubah?error=save");
-  await catatLog(user, "Ubah buku", values.nama + " (#" + id + ")");
+  if (error) return formError(previous, parsed, "form", "Perubahan buku gagal disimpan.");
+  await catatLog(user, "Ubah buku", parsed.values.nama + " (#" + id + ")");
   segarkan(id);
   redirect("/admin");
 }

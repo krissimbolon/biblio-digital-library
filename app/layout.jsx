@@ -3,6 +3,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 export const metadata = {
+  metadataBase: new URL("https://biblio-digital-library.vercel.app"),
   title: "BIBLIO — Biblio Digital Library",
   description: "Jelajahi karya sastra klasik dunia dan temukan bacaan yang bermakna di Biblio Digital Library.",
 };

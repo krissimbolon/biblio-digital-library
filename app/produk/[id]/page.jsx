@@ -20,7 +20,7 @@ export async function generateMetadata({ params }) {
   return {
     title: produk.nama + " | Biblio",
     description: deskripsi,
-    openGraph: { title: produk.nama, description: deskripsi, images: produk.foto_url ? [{ url: produk.foto_url }] : [] },
+    openGraph: { title: produk.nama, description: deskripsi, images: produk.foto_url ? [{ url: new URL(produk.foto_url, "https://biblio-digital-library.vercel.app").toString(), alt: "Sampul " + produk.nama }] : [] },
   };
 }
 
