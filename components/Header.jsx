@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function Header() {
   return (
@@ -12,7 +13,9 @@ export default function Header() {
         </Link>
         <nav aria-label="Navigasi utama" className="flex items-center gap-5 text-sm font-medium sm:gap-8">
           <Link href="/#koleksi" className="text-teks transition-colors hover:text-utama">Koleksi</Link>
+          <Link href="/favorit" className="text-teks-lembut transition-colors hover:text-utama">Favorit</Link>
           <Link href="/#tentang" className="text-teks-lembut transition-colors hover:text-utama">Tentang</Link>
+          <ThemeToggle/>
         </nav>
       </div>
     </header>
