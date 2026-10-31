@@ -4,6 +4,9 @@ import Tombol from "@/components/Tombol";
 const pesanError = {
   invalid: "Periksa judul, harga, harga diskon (harus lebih kecil dari harga normal), stok, atau alamat gambar.",
   save: "Buku gagal disimpan. Coba lagi.",
+  file: "Foto harus JPG, PNG, atau WebP dengan ukuran maksimal 2 MB. Maksimal lima foto galeri.",
+  upload: "Foto gagal diunggah. Periksa berkas dan coba kembali.",
+  galeri: "Galeri maksimal enam foto tambahan dengan alamat HTTPS atau path situs.",
 };
 
 export default function FormProduk({ produk = {}, labelTombol, action, error, kategori = [] }) {
@@ -27,11 +30,19 @@ export default function FormProduk({ produk = {}, labelTombol, action, error, ka
         <Input label="Stok" name="stok" type="number" min="0" step="1" defaultValue={produk.stok ?? 10} required />
       </div>
       <Input label="URL sampul" name="foto_url" defaultValue={produk.foto_url || ""} placeholder="https://... atau /buku/nama.svg" />
+      <label className="flex flex-col gap-1.5 text-sm font-semibold">Unggah sampul (JPG, PNG, WebP; maks. 2 MB)
+        <input name="sampul_file" type="file" accept="image/jpeg,image/png,image/webp" className="rounded-lg border border-garis bg-latar p-2 text-sm" />
+      </label>
+      <label className="flex flex-col gap-1.5 text-sm font-semibold">Foto galeri tambahan (maks. lima berkas)
+        <input name="galeri_files" type="file" multiple accept="image/jpeg,image/png,image/webp" className="rounded-lg border border-garis bg-latar p-2 text-sm" />
+      </label>
+      <Input label="URL galeri tambahan (satu per baris)" name="galeri_urls" textarea rows={3} defaultValue={(produk.galeri || []).join("\n")} />
       <Input label="Deskripsi" name="deskripsi" textarea defaultValue={produk.deskripsi || ""} maxLength={4000} />
       <label className="flex items-center gap-3 text-sm font-semibold">
         <input type="checkbox" name="aktif" defaultChecked={produk.aktif ?? true} className="h-4 w-4 accent-[var(--color-utama)]" />
         Tampilkan di katalog publik
       </label>
+      {produk.id && <a href={"/admin/produk/" + produk.id + "/varian"} className="text-sm font-semibold text-utama underline">Kelola varian dan harga</a>}
       <div className="flex gap-3"><Tombol type="submit">{labelTombol}</Tombol><Tombol href="/admin" varian="garis">Batal</Tombol></div>
     </form>
   );

@@ -5,6 +5,8 @@ import { productById, productsPage, categories, bestSellerIds } from "@/lib/supa
 import KartuProduk from "@/components/KartuProduk";
 import LibraryActions from "@/components/LibraryActions";
 import { formatRupiah, hargaAkhir, adaDiskon, slugify } from "@/lib/format";
+import { catalogClient } from "@/lib/supabase/catalog";
+import GaleriProduk from "@/components/GaleriProduk";
 
 export async function generateMetadata({ params }) {
   const { id } = await params;
@@ -22,10 +24,11 @@ export default async function HalamanDetailProduk({ params }) {
   const { id } = await params;
   const produk = await productById(id);
   if (!produk) notFound();
-  const [related, daftarKategori, terlaris] = await Promise.all([
+  const [related, daftarKategori, terlaris, hasilVarian] = await Promise.all([
     productsPage({ category: produk.kategori, size: 6 }),
     categories(),
     bestSellerIds(),
+    catalogClient().from("produk_varian").select("id,nama,harga").eq("produk_id", produk.id).order("urutan").order("id"),
   ]);
   const recommendations = related.products.filter((item) => item.id !== produk.id).slice(0, 4);
   const kategori = daftarKategori.find((k) => k.nama === produk.kategori);
@@ -36,7 +39,7 @@ export default async function HalamanDetailProduk({ params }) {
     <>
       <article className="grid gap-10 py-10 sm:py-16 md:grid-cols-[0.9fr_1.1fr] md:gap-16">
         <div className="rounded-lg border border-garis bg-permukaan px-[18%] py-10">
-          <img src={produk.foto_url} alt={"Sampul " + produk.nama} className={"mx-auto aspect-[3/4] w-full max-w-[320px] rounded-sm object-cover shadow-xl" + (stok === 0 ? " opacity-60 grayscale" : "")} />
+          <GaleriProduk nama={produk.nama} sampul={produk.foto_url} galeri={produk.galeri || []} habis={stok === 0} />
         </div>
         <div className="flex flex-col items-start gap-5">
           <Link href="/#koleksi" className="text-xs font-semibold text-utama hover:underline">← Kembali ke koleksi</Link>
@@ -55,7 +58,7 @@ export default async function HalamanDetailProduk({ params }) {
             {stok > 0 && terlaris.has(produk.id) && <span className="rounded-full bg-[#b4532a] px-3 py-1 text-xs font-bold text-white">Terlaris</span>}
           </div>
           <p className="max-w-prose text-base leading-8 text-teks-lembut">{produk.deskripsi}</p>
-          <TombolWhatsApp produk={produk} />
+          <TombolWhatsApp produk={produk} variants={hasilVarian.data || []} />
           <LibraryActions id={produk.id} />
         </div>
       </article>

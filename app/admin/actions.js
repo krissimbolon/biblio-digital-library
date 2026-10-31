@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { sessionClient, requireAdmin } from "@/lib/supabase/server";
 import { catalogClient } from "@/lib/supabase/catalog";
 import { slugify } from "@/lib/format";
+import { randomUUID } from "node:crypto";
 
 export async function login(data) {
   const email=String(data.get("email")||"").trim();
@@ -57,6 +58,44 @@ function parseProduct(form) {
   return { nama, harga, harga_diskon, stok, kategori: kategori || null, deskripsi, foto_url: foto_url || null, aktif: form.get("aktif") === "on" };
 }
 
+const BATAS_FOTO = 2 * 1024 * 1024;
+const TIPE_FOTO = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
+
+function fotoValid(bytes, tipe) {
+  if (tipe === "image/jpeg") return bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  if (tipe === "image/png") return bytes.length >= 8 && [137,80,78,71,13,10,26,10].every((v,i)=>bytes[i]===v);
+  if (tipe === "image/webp") return bytes.length >= 12 && Buffer.from(bytes).toString("ascii",0,4)==="RIFF" && Buffer.from(bytes).toString("ascii",8,12)==="WEBP";
+  return false;
+}
+
+async function simpanFoto(file) {
+  if (!file || typeof file.arrayBuffer !== "function" || !file.size) return { url: null };
+  if (file.size > BATAS_FOTO || !TIPE_FOTO[file.type]) return { error: "file" };
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  if (!fotoValid(bytes, file.type)) return { error: "file" };
+  const path = randomUUID() + "." + TIPE_FOTO[file.type];
+  const storage = catalogClient().storage.from("sampul");
+  const { error } = await storage.upload(path, bytes, { contentType: file.type, upsert: false });
+  if (error) return { error: "upload" };
+  return { url: storage.getPublicUrl(path).data.publicUrl };
+}
+
+async function gambarProduk(form, values) {
+  const foto = await simpanFoto(form.get("sampul_file"));
+  if (foto.error) return { error: foto.error };
+  const files = form.getAll("galeri_files").filter(f => f && typeof f.arrayBuffer==="function" && f.size > 0);
+  if (files.length > 5) return { error: "file" };
+  const links = String(form.get("galeri_urls") || "").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  if (links.length + files.length > 6 || links.some(x=>x.length>1024 || !(x.startsWith("https://") || (x.startsWith("/") && !x.startsWith("//"))))) return { error: "galeri" };
+  const galeri = [...links];
+  for (const file of files) {
+    const uploaded = await simpanFoto(file);
+    if (uploaded.error) return { error: uploaded.error };
+    if (uploaded.url) galeri.push(uploaded.url);
+  }
+  return { values: { ...values, foto_url: foto.url || values.foto_url, galeri } };
+}
+
 async function catatLog(user, aksi, target) {
   try {
     await catalogClient().from("admin_log").insert({ admin_id: user.id, admin_email: user.email, aksi, target: String(target || "").slice(0, 200) });
@@ -73,8 +112,10 @@ export async function addProduct(form) {
   const { supabase, user } = await requireAdmin();
   const values = parseProduct(form);
   if (!values) redirect("/admin/produk/baru?error=invalid");
+  const prepared = await gambarProduk(form, values);
+  if (prepared.error) redirect("/admin/produk/baru?error=" + prepared.error);
   const { data: akhir } = await supabase.from("produk").select("urutan").order("urutan", { ascending: false }).limit(1).maybeSingle();
-  const { data, error } = await supabase.from("produk").insert({ ...values, urutan: (akhir?.urutan || 0) + 1 }).select("id").single();
+  const { data, error } = await supabase.from("produk").insert({ ...prepared.values, urutan: (akhir?.urutan || 0) + 1 }).select("id").single();
   if (error) redirect("/admin/produk/baru?error=save");
   await catatLog(user, "Tambah buku", values.nama + " (#" + data.id + ")");
   segarkan();
@@ -85,7 +126,9 @@ export async function editProduct(id, form) {
   const { supabase, user } = await requireAdmin();
   const values = parseProduct(form);
   if (!values) redirect("/admin/produk/" + id + "/ubah?error=invalid");
-  const { error } = await supabase.from("produk").update(values).eq("id", id);
+  const prepared = await gambarProduk(form, values);
+  if (prepared.error) redirect("/admin/produk/" + id + "/ubah?error=" + prepared.error);
+  const { error } = await supabase.from("produk").update(prepared.values).eq("id", id);
   if (error) redirect("/admin/produk/" + id + "/ubah?error=save");
   await catatLog(user, "Ubah buku", values.nama + " (#" + id + ")");
   segarkan(id);
@@ -175,4 +218,44 @@ export async function deleteCategory(form) {
   await catatLog(user, "Hapus kategori", kategori.nama);
   segarkan();
   redirect("/admin/kategori?status=hapus");
+}
+
+function validId(raw) {
+  const id = Number(raw);
+  return Number.isSafeInteger(id) && id > 0 ? id : null;
+}
+
+export async function addVariant(form) {
+  const { user } = await requireAdmin();
+  const id = validId(form.get("produk_id"));
+  const nama = String(form.get("nama") || "").trim();
+  const harga = angka(form, "harga");
+  if (!id || !nama || nama.length > 60 || !Number.isSafeInteger(harga) || harga < 0 || harga > 2000000000)
+    redirect("/admin/produk/" + id + "/varian?error=invalid");
+  const client = catalogClient();
+  const { data: produk } = await client.from("produk").select("nama").eq("id",id).maybeSingle();
+  if (!produk) redirect("/admin");
+  const { count } = await client.from("produk_varian").select("id",{count:"exact",head:true}).eq("produk_id",id);
+  if (count >= 20) redirect("/admin/produk/" + id + "/varian?error=limit");
+  const { error } = await client.from("produk_varian").insert({ produk_id:id, nama, harga, urutan:count || 0 });
+  if (error) redirect("/admin/produk/" + id + "/varian?error=save");
+  await catatLog(user,"Tambah varian",produk.nama+" / "+nama);
+  revalidatePath("/produk/"+id);
+  revalidatePath("/admin/produk/"+id+"/varian");
+  redirect("/admin/produk/"+id+"/varian?status=tambah");
+}
+
+export async function deleteVariant(form) {
+  const { user } = await requireAdmin();
+  const id = validId(form.get("produk_id"));
+  const varianId = validId(form.get("varian_id"));
+  if (!id || !varianId) return;
+  const client = catalogClient();
+  const { data: variant } = await client.from("produk_varian").select("nama").eq("id",varianId).eq("produk_id",id).maybeSingle();
+  if (!variant) return;
+  const { error } = await client.from("produk_varian").delete().eq("id",varianId).eq("produk_id",id);
+  if (error) throw new Error("Varian gagal dihapus");
+  await catatLog(user,"Hapus varian",variant.nama+" (#"+id+")");
+  revalidatePath("/produk/"+id);
+  revalidatePath("/admin/produk/"+id+"/varian");
 }
