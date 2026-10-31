@@ -12,11 +12,13 @@ Perpustakaan digital independen untuk menjelajahi koleksi buku dan memesan edisi
 |---|---|
 | `/` | Katalog buku dengan pencarian, filter kategori, pengurutan, paginasi, dan buku terakhir dilihat |
 | `/produk/[id]` | Detail buku, pilihan jumlah eksemplar, pemesanan WhatsApp, tombol bagikan, favorit, dan buku terkait |
+| `/kategori/[slug]` | Daftar buku dalam satu kategori |
 | `/favorit` | Daftar buku favorit yang tersimpan di peramban |
 | `/tentang` | Profil Biblio dan informasi layanan |
 | `/admin/login` | Masuk administrator |
-| `/admin` | Kelola koleksi: daftar, pencarian, ringkasan per kategori, dan lima buku dengan klik pesan terbanyak |
-| `/admin/produk/baru`, `/admin/produk/[id]/ubah` | Tambah dan ubah data buku |
+| `/admin` | Kelola koleksi: daftar, pencarian, status aktif, urutan tampil, ringkasan per kategori, dan lima buku dengan klik pesan terbanyak |
+| `/admin/produk/baru`, `/admin/produk/[id]/ubah` | Tambah dan ubah data buku: harga diskon, stok, kategori, dan status tampil |
+| `/admin/kategori` | Tambah, ubah nama, dan hapus kategori |
 | `/admin/password` | Ganti password administrator |
 | `/api/admin/ekspor` | Ekspor katalog ke CSV |
 
@@ -31,6 +33,7 @@ Next.js 16 (App Router), React 19, Tailwind CSS 4, Supabase Auth dan PostgreSQL,
 | `docs/schema.sql` | Tabel `produk` dan Row Level Security |
 | `docs/seed-biblio-books.sql` | Enam judul awal katalog Biblio |
 | `docs/bonus-analytics.sql` | Tabel `wa_clicks` untuk hitungan klik pesan per buku |
+| `docs/biblio-fitur.sql` | Kolom stok, harga diskon, status, urutan, dan galeri buku; tabel kategori, varian, ulasan, banner, pengaturan toko, admin, log aktivitas, batas kiriman; bucket Storage `sampul` |
 | `docs/admin-rls.sql` | Kebijakan tulis `produk` khusus UID administrator terdaftar (opsional) |
 
 ## Variabel lingkungan
