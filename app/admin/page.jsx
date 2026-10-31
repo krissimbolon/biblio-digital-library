@@ -1,27 +1,30 @@
 import NavAdmin from "@/components/NavAdmin";
 import TabelProduk from "@/components/TabelProduk";
 import Tombol from "@/components/Tombol";
-import CatatanBelumAktif from "@/components/CatatanBelumAktif";
-import { produkContoh } from "@/lib/data-contoh";
+import { requireAdmin } from "@/lib/supabase/server";
+import { productsPage } from "@/lib/supabase/catalog";
 
-// US-06: halaman ini belum terlindungi. Siapa pun bisa membukanya.
-// Tugas peserta: hanya admin yang sudah login boleh membuka semua halaman /admin.
-export default function HalamanAdmin() {
-  // US-07 (bonus): daftar produk masih memakai data contoh, belum dari database.
-  const daftarProduk = produkContoh;
-
-  return (
-    <div className="flex flex-col gap-6 py-8">
-      <NavAdmin />
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-extrabold">Produk</h1>
-        {/* US-08 (bonus): tambah produk */}
-        <Tombol href="/admin/produk/baru">Tambah produk</Tombol>
-      </div>
-      <CatatanBelumAktif>
-        Halaman admin belum terlindungi dan masih memakai data contoh: lihat US-06 dan US-07.
-      </CatatanBelumAktif>
-      <TabelProduk daftarProduk={daftarProduk} />
+export default async function HalamanAdmin({searchParams}) {
+  await requireAdmin();
+  const params=await searchParams;
+  const page=Math.max(1,Number(params?.page)||1);
+  const q=String(params?.q||"").slice(0,80);
+  const {products,pages,count}=await productsPage({page,size:20,q});
+  return <section className="flex flex-col gap-7 py-10">
+    <NavAdmin/>
+    <div className="flex flex-wrap items-center justify-between gap-4">
+      <div><h1 className="font-serif text-3xl">Kelola koleksi</h1><p className="mt-2 text-sm text-teks-lembut">{count} buku</p></div>
+      <Tombol href="/admin/produk/baru">Tambah buku</Tombol>
     </div>
-  );
+    <form className="flex max-w-md gap-2">
+      <input name="q" aria-label="Cari buku" defaultValue={q} placeholder="Cari judul" className="min-w-0 flex-1 rounded-md border border-garis bg-latar px-3 py-2 text-sm"/>
+      <Tombol type="submit">Cari</Tombol>
+    </form>
+    <TabelProduk daftarProduk={products}/>
+    <nav aria-label="Halaman admin" className="flex gap-5 text-sm">
+      {page>1&&<a className="text-utama underline" href={"/admin?page="+(page-1)+"&q="+encodeURIComponent(q)}>Sebelumnya</a>}
+      <span>Halaman {page} dari {pages}</span>
+      {page<pages&&<a className="text-utama underline" href={"/admin?page="+(page+1)+"&q="+encodeURIComponent(q)}>Berikutnya</a>}
+    </nav>
+  </section>;
 }
