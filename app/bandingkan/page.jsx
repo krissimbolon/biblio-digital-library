@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import CompareView from "@/components/CompareView";
 import { productsPage } from "@/lib/supabase/catalog";
 

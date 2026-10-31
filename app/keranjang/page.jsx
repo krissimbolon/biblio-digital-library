@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import CartView from "@/components/CartView";
 import { productsPage } from "@/lib/supabase/catalog";
 import { getToko } from "@/lib/supabase/store";
