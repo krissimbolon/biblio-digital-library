@@ -1,15 +1,13 @@
 import NavAdmin from "@/components/NavAdmin";
 import FormProduk from "@/components/FormProduk";
-import CatatanBelumAktif from "@/components/CatatanBelumAktif";
+import { addProduct } from "@/app/admin/actions";
+import { requireAdmin } from "@/lib/supabase/server";
 
-// US-08 (bonus di jalur offline): tambah produk.
-export default function HalamanTambahProduk() {
-  return (
-    <div className="flex flex-col gap-6 py-8">
-      <NavAdmin />
-      <h1 className="text-2xl font-extrabold">Tambah produk</h1>
-      <CatatanBelumAktif>Simpan produk belum berfungsi: lihat US-08.</CatatanBelumAktif>
-      <FormProduk labelTombol="Simpan produk" />
-    </div>
-  );
+export default async function HalamanTambahProduk({searchParams}) {
+  await requireAdmin();
+  const q=await searchParams;
+  return <section className="flex flex-col gap-7 py-10">
+    <NavAdmin/><h1 className="font-serif text-3xl">Tambah buku</h1>
+    <FormProduk labelTombol="Simpan buku" action={addProduct} error={q?.error}/>
+  </section>;
 }
