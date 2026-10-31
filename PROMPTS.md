@@ -53,3 +53,33 @@ Catatan prompt utama selama membangun Biblio Digital Library, hasil yang diperol
 ## Fitur bonus
 
 Fitur bonus dikerjakan per user story dan dicatat pada pesan commit dengan format `US-xx` dan `K-xx`.
+
+## US-18, US-29, US-48 — Foto dan varian
+
+**Fitur:** Galeri sampul, berkas foto dengan batas 2 MB dan pemeriksaan format, serta varian harga untuk setiap buku.
+
+**Kriteria:** Foto tersimpan di bucket `sampul`; varian ikut tercantum dalam pesan WhatsApp.
+
+## US-21, US-37, US-38, US-39 — Interaksi pembaca
+
+**Fitur:** Keranjang lintas halaman, perbandingan dua buku, ulasan dengan rating, dan moderasi administrator.
+
+**Kriteria:** Jumlah dan total keranjang mengikuti data katalog; ulasan yang disembunyikan tidak masuk rata-rata rating.
+
+## US-42 sampai US-46 — Administrasi katalog
+
+**Fitur:** Banner promo, pengaturan toko, undangan dan status administrator, catatan aktivitas, dan impor koleksi CSV.
+
+**Kriteria:** Akses melalui sesi administrator, informasi toko dari database, serta validasi baris CSV dan ringkasan impor.
+
+## US-14 dan US-50 — Deskripsi dan tanya jawab
+
+**Fitur:** Deskripsi buku berbasis judul dan kategori; pertanyaan singkat berdasarkan informasi buku di katalog.
+
+**Kriteria:** Layanan diproses dari server dengan `GEMINI_API_KEY`, panjang input dibatasi, pembatasan frekuensi diberlakukan, dan kegagalan ditampilkan kepada pengguna.
+
+## K-1 sampai K-13 — Keamanan dan ketersediaan
+
+**Fitur:** Otentikasi server, pembatasan peran administrator, validasi data, pembatasan unggah, kebijakan header keamanan, pemeriksaan fungsi database, dan halaman tidak ditemukan.
+
+**Kriteria:** Kunci rahasia hanya di server; pemeriksaan akses dilakukan di setiap operasi mutasi; respons HTTP dan fungsi publik dapat diuji melalui rute masing-masing.

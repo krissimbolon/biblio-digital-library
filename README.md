@@ -1,55 +1,64 @@
 # BIBLIO — Biblio Digital Library
 
-Perpustakaan digital independen untuk menjelajahi koleksi buku dan memesan edisi cetak melalui WhatsApp. Proyek Creative Hub App Talent (CHAT) Ekraf 2026, dibangun dari template `andixurniawan/katalog-umkm`.
-
-> “I have always imagined that Paradise will be a kind of library.” — **Jorge Luis Borges**
+Katalog buku digital independen untuk menjelajahi karya sastra, menyimpan favorit, membandingkan edisi, membaca ulasan, dan memesan edisi cetak melalui WhatsApp.
 
 **Situs:** https://biblio-digital-library.vercel.app/
 
-## Halaman
+## Katalog publik
 
-| Rute | Fungsi |
-|---|---|
-| `/` | Katalog buku dengan pencarian, filter kategori, pengurutan, paginasi, dan buku terakhir dilihat |
-| `/produk/[id]` | Detail buku, pilihan jumlah eksemplar, pemesanan WhatsApp, tombol bagikan, favorit, dan buku terkait |
-| `/kategori/[slug]` | Daftar buku dalam satu kategori |
-| `/favorit` | Daftar buku favorit yang tersimpan di peramban |
-| `/tentang` | Profil Biblio dan informasi layanan |
-| `/admin/login` | Masuk administrator |
-| `/admin` | Kelola koleksi: daftar, pencarian, status aktif, urutan tampil, ringkasan per kategori, dan lima buku dengan klik pesan terbanyak |
-| `/admin/produk/baru`, `/admin/produk/[id]/ubah` | Tambah dan ubah data buku: harga diskon, stok, kategori, dan status tampil |
-| `/admin/kategori` | Tambah, ubah nama, dan hapus kategori |
-| `/admin/password` | Ganti password administrator |
-| `/api/admin/ekspor` | Ekspor katalog ke CSV |
+| Halaman | Kegunaan |
+| --- | --- |
+| `/` | Katalog, pencarian, kategori, urutan, banner, buku terakhir dilihat |
+| `/produk/[id]` | Sampul dan galeri, harga, varian, stok, pemesanan, ulasan, pertanyaan buku |
+| `/kategori/[slug]` | Katalog per kategori |
+| `/keranjang` | Jumlah dan ringkasan beberapa buku untuk satu pesan WhatsApp |
+| `/bandingkan` | Perbandingan dua buku |
+| `/favorit` | Buku tersimpan di peramban |
+| `/tentang` | Profil dan informasi layanan |
 
-## Teknologi
+## Administrasi
 
-Next.js 16 (App Router), React 19, Tailwind CSS 4, Supabase Auth dan PostgreSQL, serta Vercel. Seluruh akses Supabase berjalan di server melalui Server Component, Server Action, dan Route Handler. Rute `/admin` dilindungi `proxy.js`, dan setiap aksi yang mengubah data memeriksa sesi administrator di server.
+| Halaman | Kegunaan |
+| --- | --- |
+| `/admin` | Dashboard koleksi, statistik dan minat pemesanan |
+| `/admin/produk/baru` | Buku baru, harga, stok, sampul, galeri, dan deskripsi |
+| `/admin/produk/[id]/ubah` | Perubahan buku |
+| `/admin/produk/[id]/varian` | Pilihan edisi dan harga |
+| `/admin/kategori` | Kelola kategori |
+| `/admin/ulasan` | Moderasi ulasan |
+| `/admin/banner` | Penawaran dan pengumuman |
+| `/admin/toko` | Identitas dan kontak toko |
+| `/admin/admins` | Undangan dan status administrator |
+| `/admin/aktivitas` | 50 aktivitas terakhir |
+| `/admin/impor` | Impor koleksi CSV |
+| `/admin/password` | Ubah password |
+| `/api/admin/ekspor` | Ekspor CSV |
 
-## Basis data
+## Teknologi dan data
 
-| Berkas | Isi |
-|---|---|
-| `docs/schema.sql` | Tabel `produk` dan Row Level Security |
-| `docs/seed-biblio-books.sql` | Enam judul awal katalog Biblio |
-| `docs/bonus-analytics.sql` | Tabel `wa_clicks` untuk hitungan klik pesan per buku |
-| `docs/biblio-fitur.sql` | Kolom stok, harga diskon, status, urutan, dan galeri buku; tabel kategori, varian, ulasan, banner, pengaturan toko, admin, log aktivitas, batas kiriman; bucket Storage `sampul` |
-| `docs/admin-rls.sql` | Kebijakan tulis `produk` khusus UID administrator terdaftar (opsional) |
+Next.js 16, React 19, Tailwind CSS 4, Supabase PostgreSQL/Auth/Storage, dan Vercel.
 
-## Variabel lingkungan
+Skema dasar tersedia di `docs/schema.sql`, sementara fitur katalog lanjutan terdapat di `docs/biblio-fitur.sql`. RLS digunakan pada tabel operasional. Katalog diambil oleh server; kredensial rahasia tidak dipublikasikan ke browser.
 
-`SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, dan `BIBLIO_ADMIN_UID` (UID akun Supabase Auth yang diizinkan membuka panel admin). Semuanya hanya dibaca di server; format contoh tersedia di `.env.example`.
+## Konfigurasi
 
-## Pengembangan lokal
+Variabel lingkungan server: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `BIBLIO_ADMIN_UID`. Untuk deskripsi buku dan tanya jawab berbasis Gemini, tambahkan `GEMINI_API_KEY` pada lingkungan Vercel Production. Jika kunci tidak tersedia, kedua layanan menampilkan pesan ketidaktersediaan.
+
+Berkas contoh: `.env.example`.
+
+## Impor CSV
+
+Header wajib: `nama,harga`. Header opsional: `kategori,deskripsi,foto_url,stok,harga_diskon,aktif`. Ukuran maksimum 1 MB atau 250 baris data per unggahan. Baris bermasalah dilaporkan dengan nomor baris.
+
+## Penggunaan lokal
 
 ```bash
 npm ci
 npm run dev
 ```
 
-## Tentang aplikasi ini
+## Biblio
 
-- **Nama usaha:** BIBLIO — Biblio Digital Library
-- **Pembuat:** Christian Simbolon
-- **Link aplikasi:** https://biblio-digital-library.vercel.app/
-- **Fitur bonus yang dikerjakan:** US-07 sampai US-13, US-15 sampai US-17, US-22 sampai US-28, US-30, US-33 sampai US-36, US-40, US-41, K-6, K-8, K-9, K-10, dan K-12.
+Ruang untuk buku, pengetahuan, dan ide-ide yang melampaui zaman.
+
+Dibuat dengan sepenuh hati oleh Chris Simbolon.
