@@ -45,9 +45,9 @@ try {
   });
   await check("Tautan koleksi dan tentang", async()=>{
     await page.locator('main a[href="#koleksi"]').first().click();
-    assert.ok(page.url().includes("#koleksi"));
+    await page.waitForURL(url => url.hash === "#koleksi");
     await page.locator('main a[href="#tentang"]').first().click();
-    assert.ok(page.url().includes("#tentang"));
+    await page.waitForURL(url => url.hash === "#tentang");
   });
   await check("Pencarian judul", async()=>{
     await page.locator('#koleksi input[name="q"]').fill("Frankenstein");
@@ -83,7 +83,7 @@ try {
     const wa=page.getByRole("link",{name:"Pesan semua via WhatsApp"});
     const href=await wa.getAttribute("href");
     assert.ok(href.startsWith("https://wa.me/"));
-    assert.ok(decodeURIComponent(href).includes("Frankenstein")===false || href.includes("wa.me/"));
+    assert.ok(decodeURIComponent(href).includes("text="));
     await page.getByRole("button",{name:"Kosongkan keranjang"}).click();
     assert.ok(await page.getByText(/Keranjang belum berisi buku/).isVisible());
   });
