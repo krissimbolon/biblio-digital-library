@@ -1,11 +1,20 @@
 import Link from "next/link";
 import KartuProduk from "@/components/KartuProduk";
-import { produkContoh } from "@/lib/data-contoh";
+import { productsPage } from "@/lib/supabase/catalog";
 import { toko } from "@/lib/toko";
 
 // Halaman pengantar koleksi. US-01 akan mengganti produkContoh dengan query server Supabase.
-export default function HalamanKatalog() {
-  const daftarProduk = produkContoh;
+export default async function HalamanKatalog({searchParams}) {
+  const params=await searchParams;
+  const q=String(params?.q||"").slice(0,80);
+  const category=String(params?.kategori||"").slice(0,80);
+  const sort=String(params?.urut||"terbaru");
+  const page=Math.max(1,Number(params?.page)||1);
+  let daftarProduk=[],pages=1,error="";
+  try {
+    const result=await productsPage({q,category,sort,page,size:12});
+    daftarProduk=result.products;pages=result.pages;
+  } catch {error="Katalog belum dapat dimuat. Periksa kembali beberapa saat lagi.";}
   const pilihan = daftarProduk[0];
 
   return (
@@ -80,7 +89,16 @@ export default function HalamanKatalog() {
             Karya klasik yang membuka jalan bagi percakapan lintas generasi.
           </p>
         </div>
-        {daftarProduk.length > 0 ? (
+        <form className="mb-8 grid gap-3 rounded-lg border border-garis bg-latar p-4 sm:grid-cols-[1fr_150px_140px_auto]">
+          <input name="q" aria-label="Cari judul buku" defaultValue={q} placeholder="Cari judul buku" className="min-w-0 rounded-md border border-garis bg-latar px-3 py-2 text-sm" />
+          <input name="kategori" aria-label="Kategori buku" defaultValue={category} placeholder="Kategori" className="min-w-0 rounded-md border border-garis bg-latar px-3 py-2 text-sm" />
+          <select name="urut" aria-label="Urutkan katalog" defaultValue={sort} className="rounded-md border border-garis bg-latar px-3 py-2 text-sm">
+            <option value="terbaru">Terbaru</option><option value="termurah">Termurah</option><option value="termahal">Termahal</option>
+          </select>
+          <button type="submit" className="rounded-md bg-utama px-5 py-2 text-sm font-semibold text-white">Cari</button>
+        </form>
+        {error && <p role="alert" className="rounded-md border border-garis bg-permukaan p-4 text-sm text-bahaya">{error}</p>}
+        {!error && daftarProduk.length > 0 ? (
           <div className="grid grid-cols-2 gap-x-4 gap-y-9 sm:gap-x-6 lg:grid-cols-3 lg:gap-x-8">
             {daftarProduk.map((produk) => (
               <KartuProduk key={produk.id} produk={produk} />
@@ -91,6 +109,11 @@ export default function HalamanKatalog() {
             Belum ada buku dalam koleksi.
           </p>
         )}
+        {!error && <nav className="mt-9 flex items-center gap-5 text-sm" aria-label="Halaman katalog">
+          {page>1 && <Link href={"/?"+new URLSearchParams({q,kategori:category,urut:sort,page:String(page-1)})+"#koleksi"} className="font-semibold text-utama underline">Sebelumnya</Link>}
+          <span>Halaman {page} dari {pages}</span>
+          {page<pages && <Link href={"/?"+new URLSearchParams({q,kategori:category,urut:sort,page:String(page+1)})+"#koleksi"} className="font-semibold text-utama underline">Berikutnya</Link>}
+        </nav>}
       </section>
 
       <section id="tentang" className="scroll-mt-24 border-t border-garis py-12 sm:py-16">
