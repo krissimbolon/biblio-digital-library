@@ -6,7 +6,6 @@ import KartuProduk from "@/components/KartuProduk";
 import LibraryActions from "@/components/LibraryActions";
 import { formatRupiah } from "@/lib/format";
 
-// US-02 akan mengganti sumber data ini dengan pembacaan Supabase di server.
 export async function generateMetadata({params}) {
   const {id}=await params;
   const produk=await productById(id);

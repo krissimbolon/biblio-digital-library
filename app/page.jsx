@@ -4,7 +4,6 @@ import RecentlyViewed from "@/components/RecentlyViewed";
 import { productsPage } from "@/lib/supabase/catalog";
 import { toko } from "@/lib/toko";
 
-// Halaman pengantar koleksi. US-01 akan mengganti produkContoh dengan query server Supabase.
 export default async function HalamanKatalog({searchParams}) {
   const params=await searchParams;
   const q=String(params?.q||"").slice(0,80);
