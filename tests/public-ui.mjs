@@ -117,6 +117,34 @@ try {
     await page.getByRole("button",{name:"Kirim ulasan"}).click();
     assert.ok(await page.locator('input[name="nama"]').evaluate(el=>el.validity.valueMissing));
   });
+  await check("Kategori dan halaman administrator", async()=>{
+    await page.goto(origin + detail, {waitUntil:"domcontentloaded"});
+    const category = page.locator('article a[href^="/kategori/"]').first();
+    const href = await category.getAttribute("href");
+    assert.ok(href?.startsWith("/kategori/"));
+    await category.click();
+    await page.waitForURL(url=>url.pathname===href);
+    assert.ok(await page.locator('main h1').count());
+    await page.locator('header a[href="/admin/login"]').click();
+    await page.waitForURL(/\/admin\/login/);
+    await page.getByRole("heading",{name:"Masuk administrator"}).waitFor({state:"visible"});
+    await page.getByRole("link",{name:"Kembali ke katalog"}).click();
+    await page.waitForURL(url=>url.pathname==="/");
+    const wa = await page.locator('footer a[href^="https://wa.me/"]').first().getAttribute("href");
+    assert.ok(wa?.includes("text="));
+  });
+  await check("Pertanyaan buku", async()=>{
+    await page.goto(origin + detail, {waitUntil:"domcontentloaded"});
+    await page.locator("#pertanyaan-buku").fill("Apa kategori buku ini?");
+    const [response] = await Promise.all([
+      page.waitForResponse(x=>x.url().endsWith("/api/produk/tanya")&&x.request().method()==="POST",{timeout:30000}),
+      page.getByRole("button",{name:"Kirim pertanyaan"}).click()
+    ]);
+    const data=await response.json();
+    if (!response.ok()) throw new Error("Layanan pertanyaan buku: HTTP "+response.status()+" - "+String(data.error||"Tidak tersedia").slice(0,180));
+    assert.ok(typeof data.jawaban==="string"&&data.jawaban.length>10);
+    await page.getByText(data.jawaban,{exact:true}).waitFor({state:"visible"});
+  });
   await check("Navigasi seluler dan lebar halaman", async()=>{
     const mobile = await browser.newContext({viewport:{width:375,height:812},isMobile:true,hasTouch:true});
     const p=await mobile.newPage();
