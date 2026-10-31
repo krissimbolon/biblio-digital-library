@@ -4,8 +4,8 @@ import Footer from "@/components/Footer";
 import { toko } from "@/lib/toko";
 
 export const metadata = {
-  title: toko.nama,
-  description: toko.tagline,
+  title: "BIBLIO — Biblio Digital Library",
+  description: "Perpustakaan digital untuk menjelajahi pengetahuan, merawat literasi, dan menemukan buku digital maupun cetak.",
 };
 
 export default function RootLayout({ children }) {

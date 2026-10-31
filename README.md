@@ -1,80 +1,52 @@
-# Katalog UMKM + Order WhatsApp
+# BIBLIO — Biblio Digital Library
 
-Template workshop vibe coding Creative Hub App Talent (CHAT) 2026. Repo ini berisi tampilan aplikasi katalog UMKM; tugasmu merangkainya menjadi sistem utuh dengan bantuan AI: database, login admin, keamanan, dan pemesanan lewat WhatsApp.
+Perpustakaan digital independen untuk menjelajahi koleksi buku dan memesan edisi cetak melalui WhatsApp. Proyek Creative Hub App Talent (CHAT) Ekraf 2026, dibangun dari template `andixurniawan/katalog-umkm`.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fandixurniawan%2Fkatalog-umkm&project-name=katalog-umkm&repository-name=katalog-umkm)
+> “I have always imagined that Paradise will be a kind of library.” — **Jorge Luis Borges**
 
-## Langkah awal
+**Situs:** https://biblio-digital-library.vercel.app/
 
-1. **Salin repo ke akun GitHub-mu.** Klik tombol **Deploy with Vercel** di atas. Vercel akan membuat repo baru di akun GitHub-mu dan langsung men-deploy-nya. Setelah selesai, buka link Vercel-mu: katalog tampil dengan data contoh.
-2. **Buat proyek Supabase.** Masuk ke [supabase.com](https://supabase.com) dengan akun GitHub, lalu buat proyek baru. Simpan password database di tempat aman.
-3. **Siapkan database.** Di Supabase, buka **SQL Editor**, tempel seluruh isi `docs/schema.sql`, lalu klik **Run**. Tabel `produk` beserta data awal akan terbentuk.
-4. **Siapkan akun admin.** Ikuti panduan akun admin yang dibagikan mentor. Setelah itu matikan pendaftaran akun baru di **Authentication > Sign In / Providers**.
-5. **Isi environment variable di Vercel.** Buka proyekmu di Vercel > **Settings > Environment Variables**, lalu isi tiga variabel dari `.env.example`. Nilainya ada di Supabase > **Project Settings > API**. Setelah itu lakukan **Redeploy**.
-6. **Clone repo ke laptop.**
+## Halaman
 
-   ```bash
-   git clone https://github.com/<akunmu>/<nama-repo>.git
-   cd <nama-repo>
-   npm install
-   ```
+| Rute | Fungsi |
+|---|---|
+| `/` | Katalog buku dengan pencarian, filter kategori, pengurutan, paginasi, dan buku terakhir dilihat |
+| `/produk/[id]` | Detail buku, pilihan jumlah eksemplar, pemesanan WhatsApp, tombol bagikan, favorit, dan buku terkait |
+| `/favorit` | Daftar buku favorit yang tersimpan di peramban |
+| `/tentang` | Profil Biblio dan informasi layanan |
+| `/admin/login` | Masuk administrator |
+| `/admin` | Kelola koleksi: daftar, pencarian, ringkasan per kategori, dan lima buku dengan klik pesan terbanyak |
+| `/admin/produk/baru`, `/admin/produk/[id]/ubah` | Tambah dan ubah data buku |
+| `/admin/password` | Ganti password administrator |
+| `/api/admin/ekspor` | Ekspor katalog ke CSV |
 
-7. **Buat file `.env.local`.** Salin `.env.example` menjadi `.env.local`, lalu isi dengan nilai yang sama seperti di Vercel.
-8. **Jalankan di laptop.**
+## Teknologi
 
-   ```bash
-   npm run dev
-   ```
+Next.js 16 (App Router), React 19, Tailwind CSS 4, Supabase Auth dan PostgreSQL, serta Vercel. Seluruh akses Supabase berjalan di server melalui Server Component, Server Action, dan Route Handler. Rute `/admin` dilindungi `proxy.js`, dan setiap aksi yang mengubah data memeriksa sesi administrator di server.
 
-   Buka `http://localhost:3000`.
+## Basis data
 
-## Alur kerja
+| Berkas | Isi |
+|---|---|
+| `docs/schema.sql` | Tabel `produk` dan Row Level Security |
+| `docs/seed-biblio-books.sql` | Enam judul awal katalog Biblio |
+| `docs/bonus-analytics.sql` | Tabel `wa_clicks` untuk hitungan klik pesan per buku |
+| `docs/admin-rls.sql` | Kebijakan tulis `produk` khusus UID administrator terdaftar (opsional) |
 
-Kerjakan satu user story setiap kali, lalu simpan dan kirim perubahan:
+## Variabel lingkungan
+
+`SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, dan `BIBLIO_ADMIN_UID` (UID akun Supabase Auth yang diizinkan membuka panel admin). Semuanya hanya dibaca di server; format contoh tersedia di `.env.example`.
+
+## Pengembangan lokal
 
 ```bash
-git add .
-git commit -m "US-01: katalog dari database"
-git push
+npm ci
+npm run dev
 ```
-
-Setiap `git push`, Vercel otomatis men-deploy versi terbaru. Cek hasilnya di link Vercel-mu.
-
-Urutan yang disarankan: US-01, US-02, US-03, US-04, US-05, US-06, lalu fitur bonus. Daftar lengkap ada di `docs/user-stories.md`.
-
-## Isi repo
-
-| File atau folder | Isi |
-| --- | --- |
-| `AGENTS.md` | Aturan untuk AI agent, dibaca sebelum setiap prompt |
-| `DESIGN.md` | Panduan warna, huruf, dan komponen |
-| `PROMPTS.md` | Jurnal prompt, wajib diisi |
-| `docs/` | Problem statement, PRD, user story, rancangan teknis, skema database, checklist |
-| `lib/toko.js` | Nama toko, nomor WhatsApp, alamat, jam buka |
-| `app/` | Halaman aplikasi |
-| `components/` | Komponen tampilan |
-
-## Menyesuaikan dengan usahamu
-
-- Identitas toko: ubah `lib/toko.js`.
-- Warna: ubah bagian `@theme` di `app/globals.css` (lihat `DESIGN.md`).
-- Produk: ubah langsung di Supabase > **Table Editor > produk**.
-
-## Aturan penting
-
-- Jangan menyimpan kunci atau password di kode, dan jangan push file `.env.local`.
-- Jangan memberi awalan `NEXT_PUBLIC_` pada environment variable.
-- Isi `PROMPTS.md` setiap menyelesaikan fitur.
-
-## Sebelum mengumpulkan
-
-1. Jalankan semua poin di `docs/checklist-keamanan.md` dan `docs/checklist-pengujian.md` pada link Vercel.
-2. Lengkapi bagian di bawah ini.
-3. Push perubahan terakhir sebelum batas waktu.
 
 ## Tentang aplikasi ini
 
-- **Nama usaha:**
-- **Pembuat:**
-- **Link aplikasi:**
-- **Fitur bonus yang dikerjakan:**
+- **Nama usaha:** BIBLIO — Biblio Digital Library
+- **Pembuat:** Christian Simbolon
+- **Link aplikasi:** https://biblio-digital-library.vercel.app/
+- **Fitur bonus yang dikerjakan:** US-07 sampai US-13, US-15 sampai US-17, US-22 sampai US-28, US-30, US-33 sampai US-36, US-40, US-41, K-6, K-8, K-9, K-10, dan K-12.
