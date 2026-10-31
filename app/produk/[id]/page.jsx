@@ -7,6 +7,8 @@ import LibraryActions from "@/components/LibraryActions";
 import { formatRupiah, hargaAkhir, adaDiskon, slugify } from "@/lib/format";
 import { catalogClient } from "@/lib/supabase/catalog";
 import GaleriProduk from "@/components/GaleriProduk";
+import QuickActions from "@/components/QuickActions";
+import { kirimUlasan } from "@/app/produk/[id]/actions";
 
 export async function generateMetadata({ params }) {
   const { id } = await params;
@@ -20,20 +22,24 @@ export async function generateMetadata({ params }) {
   };
 }
 
-export default async function HalamanDetailProduk({ params }) {
+export default async function HalamanDetailProduk({ params, searchParams }) {
   const { id } = await params;
   const produk = await productById(id);
   if (!produk) notFound();
-  const [related, daftarKategori, terlaris, hasilVarian] = await Promise.all([
+  const [related, daftarKategori, terlaris, hasilVarian, hasilUlasan] = await Promise.all([
     productsPage({ category: produk.kategori, size: 6 }),
     categories(),
     bestSellerIds(),
     catalogClient().from("produk_varian").select("id,nama,harga").eq("produk_id", produk.id).order("urutan").order("id"),
+    catalogClient().from("ulasan").select("id,nama,rating,komentar,created_at").eq("produk_id", produk.id).eq("tampil", true).order("created_at", { ascending: false }).limit(100),
   ]);
   const recommendations = related.products.filter((item) => item.id !== produk.id).slice(0, 4);
   const kategori = daftarKategori.find((k) => k.nama === produk.kategori);
   const stok = Number(produk.stok);
   const harga = hargaAkhir(produk);
+  const ulasan = hasilUlasan.data || [];
+  const rataRating = ulasan.length ? (ulasan.reduce((total, u) => total + Number(u.rating), 0) / ulasan.length).toFixed(1) : null;
+  const status = (await searchParams)?.ulasan;
 
   return (
     <>
@@ -60,8 +66,44 @@ export default async function HalamanDetailProduk({ params }) {
           <p className="max-w-prose text-base leading-8 text-teks-lembut">{produk.deskripsi}</p>
           <TombolWhatsApp produk={produk} variants={hasilVarian.data || []} />
           <LibraryActions id={produk.id} />
+          <QuickActions id={produk.id} habis={stok === 0} />
         </div>
       </article>
+      <section className="border-t border-garis py-12" aria-labelledby="judul-ulasan">
+        <div className="grid gap-10 md:grid-cols-2">
+          <div>
+            <h2 id="judul-ulasan" className="font-serif text-2xl">Ulasan pembaca</h2>
+            <p className="mt-3 text-sm text-teks-lembut">{rataRating ? rataRating + " / 5 dari " + ulasan.length + " ulasan" : "Belum ada ulasan untuk buku ini."}</p>
+            <div className="mt-6 max-h-[480px] space-y-4 overflow-y-auto">
+              {ulasan.map(u => <article key={u.id} className="rounded-lg border border-garis p-4">
+                <div className="flex flex-wrap justify-between gap-2"><strong>{u.nama}</strong><span className="text-sm text-utama" aria-label={u.rating+" dari 5 bintang"}>{"★".repeat(u.rating)}{"☆".repeat(5-u.rating)}</span></div>
+                <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-teks-lembut">{u.komentar}</p>
+              </article>)}
+            </div>
+          </div>
+          <form action={kirimUlasan} className="flex flex-col gap-4 rounded-lg border border-garis p-5">
+            <h3 className="font-serif text-xl">Tulis ulasan</h3>
+            {status === "terkirim" && <p role="status" className="text-sm text-utama">Terima kasih, ulasan berhasil dikirim.</p>}
+            {status === "batas" && <p role="alert" className="text-sm text-bahaya">Terlalu banyak kiriman. Coba lagi nanti.</p>}
+            {status === "invalid" && <p role="alert" className="text-sm text-bahaya">Periksa nama, rating, dan komentar sebelum mengirim.</p>}
+            {status === "gagal" && <p role="alert" className="text-sm text-bahaya">Ulasan belum berhasil disimpan.</p>}
+            <input type="hidden" name="produk_id" value={produk.id} />
+            <input type="text" name="situs" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden="true" />
+            <label className="text-sm font-semibold">Nama
+              <input name="nama" required maxLength={60} className="mt-2 w-full rounded-md border border-garis bg-latar p-3" />
+            </label>
+            <label className="text-sm font-semibold">Rating
+              <select name="rating" required defaultValue="5" className="mt-2 w-full rounded-md border border-garis bg-latar p-3">
+                {[5,4,3,2,1].map(n=><option key={n} value={n}>{n} bintang</option>)}
+              </select>
+            </label>
+            <label className="text-sm font-semibold">Komentar
+              <textarea name="komentar" required minLength={3} maxLength={1000} rows={4} className="mt-2 w-full rounded-md border border-garis bg-latar p-3" />
+            </label>
+            <button type="submit" className="rounded-md bg-utama px-5 py-3 text-sm font-semibold text-white">Kirim ulasan</button>
+          </form>
+        </div>
+      </section>
       {recommendations.length > 0 && (
         <section className="border-t border-garis py-12">
           <h2 className="mb-8 font-serif text-2xl">Buku terkait</h2>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { formatRupiah, hargaAkhir, adaDiskon, bukuBaru } from "@/lib/format";
+import QuickActions from "@/components/QuickActions";
 
 function Badge({ children, nada = "utama" }) {
   const warna = nada === "habis" ? "bg-teks text-latar" : nada === "terlaris" ? "bg-[#b4532a] text-white" : "bg-utama text-white";
@@ -10,7 +11,7 @@ export default function KartuProduk({ produk, terlaris = false }) {
   const habis = Number(produk.stok) === 0;
   const harga = hargaAkhir(produk);
   return (
-    <Link href={"/produk/" + produk.id} className="group block min-w-0 rounded-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-utama">
+    <div className="min-w-0"><Link href={"/produk/" + produk.id} className="group block min-w-0 rounded-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-utama">
       <div className="relative overflow-hidden rounded-lg border border-garis bg-permukaan px-[14%] py-6 transition-colors sm:py-8">
         <div className="absolute left-3 top-3 z-10 flex flex-wrap gap-1.5">
           {habis && <Badge nada="habis">Habis</Badge>}
@@ -35,5 +36,7 @@ export default function KartuProduk({ produk, terlaris = false }) {
         </p>
       </div>
     </Link>
+    <QuickActions id={produk.id} habis={habis} />
+    </div>
   );
 }

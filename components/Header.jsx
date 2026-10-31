@@ -13,6 +13,8 @@ export default function Header() {
         </Link>
         <nav aria-label="Navigasi utama" className="flex items-center gap-4 text-sm font-medium sm:gap-7">
           <Link href="/#koleksi" className="text-teks transition-colors hover:text-utama">Koleksi</Link>
+          <Link href="/keranjang" className="text-teks-lembut transition-colors hover:text-utama">Keranjang</Link>
+          <Link href="/bandingkan" className="hidden text-teks-lembut transition-colors hover:text-utama lg:inline">Bandingkan</Link>
           <Link href="/favorit" className="text-teks-lembut transition-colors hover:text-utama">Favorit</Link>
           <Link href="/#tentang" className="text-teks-lembut transition-colors hover:text-utama">Tentang</Link>
           <div className="flex items-center gap-2">
