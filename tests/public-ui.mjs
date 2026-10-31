@@ -143,7 +143,9 @@ try {
     const data=await response.json();
     if (!response.ok()) throw new Error("Layanan pertanyaan buku: HTTP "+response.status()+" - "+String(data.error||"Tidak tersedia").slice(0,180));
     assert.ok(typeof data.jawaban==="string"&&data.jawaban.length>10);
-    await page.getByText(data.jawaban,{exact:true}).waitFor({state:"visible"});
+    const jawaban = page.locator('form:has(#pertanyaan-buku) [role="status"]');
+    await jawaban.waitFor({state:"visible"});
+    assert.equal((await jawaban.innerText()).trim(),data.jawaban.trim());
   });
   await check("Navigasi seluler dan lebar halaman", async()=>{
     const mobile = await browser.newContext({viewport:{width:375,height:812},isMobile:true,hasTouch:true});
