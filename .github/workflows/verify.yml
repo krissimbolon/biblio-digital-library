@@ -21,5 +21,7 @@ jobs:
         run: npm ci
       - name: Check critical vulnerabilities
         run: npm audit --audit-level=critical
+      - name: Verify catalog pricing and labels
+        run: node --test tests/*.test.mjs
       - name: Production build
         run: npm run build
