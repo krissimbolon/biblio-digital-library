@@ -11,11 +11,18 @@ export default function Header() {
             Digital Library
           </span>
         </Link>
-        <nav aria-label="Navigasi utama" className="flex items-center gap-5 text-sm font-medium sm:gap-8">
+        <nav aria-label="Navigasi utama" className="flex items-center gap-4 text-sm font-medium sm:gap-7">
           <Link href="/#koleksi" className="text-teks transition-colors hover:text-utama">Koleksi</Link>
           <Link href="/favorit" className="text-teks-lembut transition-colors hover:text-utama">Favorit</Link>
           <Link href="/#tentang" className="text-teks-lembut transition-colors hover:text-utama">Tentang</Link>
-          <ThemeToggle/>
+          <div className="flex items-center gap-2">
+            <ThemeToggle/>
+            <Link href="/admin/login" aria-label="Masuk sebagai admin" title="Masuk sebagai admin"
+              className="inline-flex h-10 items-center gap-2 rounded-full border border-garis px-3 text-teks-lembut transition-colors hover:border-utama hover:text-utama">
+              <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="3.5" /><path d="M5 20a7 7 0 0 1 14 0" /></svg>
+              <span className="hidden text-sm font-medium md:inline">Masuk admin</span>
+            </Link>
+          </div>
         </nav>
       </div>
     </header>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { toko } from "@/lib/toko";
 
 export default function Footer() {
   return (
@@ -16,7 +17,7 @@ export default function Footer() {
         <div className="flex flex-col items-start gap-3 sm:items-end">
           <Link href="/#koleksi" className="hover:text-utama">Jelajahi koleksi</Link>
           <Link href="/tentang" className="hover:text-utama">Tentang Biblio</Link>
-          <Link href="/admin/login" className="text-teks-lembut hover:text-utama">Masuk admin</Link>
+          <a href={"https://wa.me/"+toko.nomorWhatsApp+"?text="+encodeURIComponent("Halo Biblio, saya ingin bertanya tentang koleksi buku.")} target="_blank" rel="noopener noreferrer" className="hover:text-utama">Hubungi via WhatsApp</a>
         </div>
       </div>
       <div className="mx-auto flex max-w-6xl flex-wrap justify-between gap-2 border-t border-garis px-4 py-5 text-xs text-teks-lembut sm:px-6">
