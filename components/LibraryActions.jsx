@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 export default function LibraryActions({id}) {
   const [favorite,setFavorite]=useState(false);
+  const [ready,setReady]=useState(false);
   const [status,setStatus]=useState("");
   useEffect(()=>{
     try {
@@ -10,7 +11,8 @@ export default function LibraryActions({id}) {
       setFavorite(saved.includes(Number(id)));
       const recent=JSON.parse(localStorage.getItem("biblio:recent")||"[]").filter(x=>x!==Number(id));
       localStorage.setItem("biblio:recent",JSON.stringify([Number(id),...recent].slice(0,8)));
-    } catch { /* Browser tanpa localStorage tetap dapat memakai katalog. */ }
+    } catch { /* Katalog tetap dapat digunakan tanpa penyimpanan browser. */ }
+    setReady(true);
   },[id]);
   function toggleFavorite(){
     try {
@@ -35,8 +37,8 @@ export default function LibraryActions({id}) {
     }
   }
   return <div className="flex flex-wrap items-center gap-3">
-    <button type="button" onClick={toggleFavorite} aria-pressed={favorite} className="rounded-md border border-garis px-4 py-2 text-sm font-semibold hover:border-utama">{favorite?"♥ Tersimpan":"♡ Simpan favorit"}</button>
-    <button type="button" onClick={share} className="rounded-md border border-garis px-4 py-2 text-sm font-semibold hover:border-utama">Bagikan buku</button>
+    <button type="button" onClick={toggleFavorite} disabled={!ready} aria-pressed={favorite} className="rounded-md border border-garis px-4 py-2 text-sm font-semibold hover:border-utama">{favorite?"♥ Tersimpan":"♡ Simpan favorit"}</button>
+    <button type="button" onClick={share} disabled={!ready} className="rounded-md border border-garis px-4 py-2 text-sm font-semibold hover:border-utama">Bagikan buku</button>
     {status&&<span role="status" className="text-xs text-teks-lembut">{status}</span>}
   </div>;
 }
