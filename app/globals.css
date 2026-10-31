@@ -44,3 +44,19 @@ body {
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }
+
+html[data-theme="dark"] {
+  --color-latar: #151a19;
+  --color-permukaan: #202825;
+  --color-garis: #35413b;
+  --color-teks: #f1f1ea;
+  --color-teks-lembut: #b4c0b8;
+  --color-utama: #a6d3b8;
+  --color-utama-gelap: #87b69e;
+  --color-harga: #b7d8c0;
+  --color-harga-latar: #253d30;
+  --color-bahaya: #ff9995;
+}
+html[data-theme="dark"] .bg-red-50 {
+  background: #402523;
+}
