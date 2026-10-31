@@ -60,3 +60,10 @@ html[data-theme="dark"] {
 html[data-theme="dark"] .bg-red-50 {
   background: #402523;
 }
+
+html[data-theme="dark"] .bg-utama.text-white {
+  color: #10251b;
+}
+html[data-theme="dark"] .bg-utama-gelap.text-white {
+  color: #10251b;
+}

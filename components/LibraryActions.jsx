@@ -23,9 +23,16 @@ export default function LibraryActions({id}) {
   }
   async function share(){
     try {
-      if(navigator.share) await navigator.share({title:document.title,url:location.href});
-      else {await navigator.clipboard.writeText(location.href);setStatus("Link tersalin");}
-    } catch {setStatus("Link belum dapat dibagikan");}
+      if(navigator.share) {
+        await navigator.share({title:document.title,url:location.href});
+        setStatus("Tautan berhasil dibagikan");
+      } else {
+        await navigator.clipboard.writeText(location.href);
+        setStatus("Link tersalin");
+      }
+    } catch(e) {
+      if(e?.name!=="AbortError")setStatus("Link belum dapat dibagikan");
+    }
   }
   return <div className="flex flex-wrap items-center gap-3">
     <button type="button" onClick={toggleFavorite} aria-pressed={favorite} className="rounded-md border border-garis px-4 py-2 text-sm font-semibold hover:border-utama">{favorite?"♥ Tersimpan":"♡ Simpan favorit"}</button>

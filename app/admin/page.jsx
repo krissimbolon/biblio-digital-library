@@ -2,7 +2,7 @@ import NavAdmin from "@/components/NavAdmin";
 import TabelProduk from "@/components/TabelProduk";
 import Tombol from "@/components/Tombol";
 import { requireAdmin } from "@/lib/supabase/server";
-import { productsPage, catalogClient } from "@/lib/supabase/catalog";
+import { productsPage, allProducts, catalogClient } from "@/lib/supabase/catalog";
 
 export default async function HalamanAdmin({searchParams}) {
   await requireAdmin();
@@ -10,17 +10,17 @@ export default async function HalamanAdmin({searchParams}) {
   const page=Math.max(1,Number(params?.page)||1);
   const q=String(params?.q||"").slice(0,80);
   const {products,pages,count}=await productsPage({page,size:20,q,includeInactive:true});
-  const stats=await productsPage({size:1000,includeInactive:true});
+  const statsProducts=await allProducts({includeInactive:true});
+  const stats={products:statsProducts,count:statsProducts.length};
   const aktif=stats.products.filter(b=>b.aktif).length;
   const habis=stats.products.filter(b=>Number(b.stok)===0).length;
   const kategori=stats.products.reduce((acc,b)=>{const key=b.kategori||"Lainnya";acc[key]=(acc[key]||0)+1;return acc},{});
   let ranking=[];
   try {
-    const {data:clicks,error}=await catalogClient().from("wa_clicks").select("produk_id").limit(10000);
-    if(!error&&clicks?.length) {
-      const counts=clicks.reduce((acc,hit)=>{acc[hit.produk_id]=(acc[hit.produk_id]||0)+1;return acc},{});
-      ranking=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5)
-        .map(([id,total])=>({book:stats.products.find(p=>p.id===Number(id)),total}))
+    const {data:clicks,error}=await catalogClient().from("biblio_click_totals")
+      .select("produk_id,total").order("total",{ascending:false}).limit(5);
+    if(!error && clicks?.length) {
+      ranking=clicks.map(x=>({book:stats.products.find(p=>p.id===Number(x.produk_id)),total:Number(x.total)}))
         .filter(x=>x.book);
     }
   } catch {}

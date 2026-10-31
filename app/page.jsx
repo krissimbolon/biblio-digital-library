@@ -1,7 +1,7 @@
 import Link from "next/link";
 import KartuProduk from "@/components/KartuProduk";
 import RecentlyViewed from "@/components/RecentlyViewed";
-import { productsPage, categories, bestSellerIds } from "@/lib/supabase/catalog";
+import { productsPage, allProducts, categories, bestSellerIds } from "@/lib/supabase/catalog";
 import { toko } from "@/lib/toko";
 import { catalogClient } from "@/lib/supabase/catalog";
 
@@ -15,7 +15,7 @@ export default async function HalamanKatalog({searchParams}) {
   try {
     const result=await productsPage({q,category,sort,page,size:12});
     daftarProduk=result.products;pages=result.pages;
-    recentCatalog=(await productsPage({size:500})).products;
+    recentCatalog=await allProducts();
     [daftarKategori,terlaris]=await Promise.all([categories(),bestSellerIds()]);
   } catch {error="Katalog belum dapat dimuat. Periksa kembali beberapa saat lagi.";}
   try {
