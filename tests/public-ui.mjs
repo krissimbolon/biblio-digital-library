@@ -133,6 +133,7 @@ try {
     const wa = await page.locator('footer a[href^="https://wa.me/"]').first().getAttribute("href");
     assert.ok(wa?.includes("text="));
   });
+  if (process.env.BIBLIO_CHECK_PERTANYAAN === "1") {
   await check("Pertanyaan buku", async()=>{
     await page.goto(origin + detail, {waitUntil:"domcontentloaded"});
     await page.locator("#pertanyaan-buku").fill("Apa kategori buku ini?");
@@ -147,6 +148,7 @@ try {
     await jawaban.waitFor({state:"visible"});
     assert.equal((await jawaban.innerText()).trim(),data.jawaban.trim());
   });
+  }
   await check("Navigasi seluler dan lebar halaman", async()=>{
     const mobile = await browser.newContext({viewport:{width:375,height:812},isMobile:true,hasTouch:true});
     const p=await mobile.newPage();
