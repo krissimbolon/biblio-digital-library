@@ -38,7 +38,7 @@ Katalog buku digital independen untuk menjelajahi karya sastra, menyimpan favori
 
 Next.js 16, React 19, Tailwind CSS 4, Supabase PostgreSQL/Auth/Storage, dan Vercel.
 
-Skema dasar tersedia di `docs/schema.sql`, sementara fitur katalog lanjutan terdapat di `docs/biblio-fitur.sql`. RLS digunakan pada tabel operasional. Katalog diambil oleh server; kredensial rahasia tidak dipublikasikan ke browser.
+Skema dasar tersedia di `docs/schema.sql`, sementara fitur katalog lanjutan terdapat di `docs/biblio-fitur.sql`. Kebijakan akses administrator terdapat di `docs/biblio-security.sql`; aturan keamanan ini diterapkan setelah tabel fitur dan akun administrator tersedia. RLS digunakan pada tabel operasional. Katalog diambil oleh server; kredensial rahasia tidak dipublikasikan ke browser.
 
 ## Konfigurasi
 
