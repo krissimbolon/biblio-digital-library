@@ -22,7 +22,7 @@ export default function Footer() {
       </div>
       <div className="mx-auto flex max-w-6xl flex-wrap justify-between gap-2 border-t border-garis px-4 py-5 text-xs text-teks-lembut sm:px-6">
         <span>© 2026 Biblio Digital Library</span>
-        <span>Dikembangkan dengan perhatian pada pengalaman membaca.</span>
+        <span>Dibuat dengan sepenuh hati oleh Chris Simbolon.</span>
       </div>
     </footer>
   );
