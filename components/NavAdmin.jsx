@@ -7,6 +7,8 @@ export default function NavAdmin() {
     <Link href="/admin/produk/baru" className="hover:text-utama">Tambah buku</Link>
     <Link href="/admin/banner" className="hover:text-utama">Banner</Link>
     <Link href="/admin/toko" className="hover:text-utama">Toko</Link>
+    <Link href="/admin/admins" className="hover:text-utama">Administrator</Link>
+    <Link href="/admin/impor" className="hover:text-utama">Impor CSV</Link>
     <Link href="/admin/aktivitas" className="hover:text-utama">Aktivitas</Link>
     <Link href="/admin/ulasan" className="hover:text-utama">Ulasan</Link>
     <Link href="/admin/kategori" className="hover:text-utama">Kategori</Link>

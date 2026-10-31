@@ -5,6 +5,7 @@ import { sessionClient, requireAdmin } from "@/lib/supabase/server";
 import { catalogClient } from "@/lib/supabase/catalog";
 import { slugify } from "@/lib/format";
 import { randomUUID } from "node:crypto";
+import { isAdminAllowed } from "@/lib/supabase/admin-access";
 
 export async function login(data) {
   const email=String(data.get("email")||"").trim();
@@ -13,7 +14,7 @@ export async function login(data) {
   if (!email || !password) redirect("/admin/login?error=1");
   const {data:result,error}=await client.auth.signInWithPassword({email,password});
   if (error?.status===429) redirect("/admin/login?error=rate");
-  if (error || !result.user || result.user.id!==process.env.BIBLIO_ADMIN_UID) {
+  if (error || !result.user || !(await isAdminAllowed(result.user.id))) {
     await client.auth.signOut();
     redirect("/admin/login?error=1");
   }
