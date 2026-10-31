@@ -32,4 +32,4 @@ with check (public.is_biblio_admin());
 create policy "admin_hapus_produk" on public.produk
 for delete to authenticated using (public.is_biblio_admin());
 
--- Seusai menjalankan skrip, tambahkan UID admin dengan SQL Editor secara manual.
+-- Hak tulis katalog berlaku untuk UID yang tercatat di public.biblio_admins.
