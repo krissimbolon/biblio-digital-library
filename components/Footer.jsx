@@ -1,12 +1,13 @@
 import Link from "next/link";
-import { toko } from "@/lib/toko";
+import { getToko } from "@/lib/supabase/store";
 
-export default function Footer() {
+export default async function Footer() {
+  const toko=await getToko();
   return (
     <footer className="mt-auto border-t border-garis bg-permukaan">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 text-sm sm:grid-cols-[1.4fr_1fr] sm:px-6">
         <div>
-          <p className="font-serif text-2xl font-bold tracking-[-0.06em] text-utama">BIBLIO</p>
+          <p className="font-serif text-2xl font-bold tracking-[-0.06em] text-utama">{toko.nama}</p>
           <p className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-teks-lembut">
             Biblio Digital Library
           </p>

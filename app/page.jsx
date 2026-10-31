@@ -3,6 +3,7 @@ import KartuProduk from "@/components/KartuProduk";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import { productsPage, categories, bestSellerIds } from "@/lib/supabase/catalog";
 import { toko } from "@/lib/toko";
+import { catalogClient } from "@/lib/supabase/catalog";
 
 export default async function HalamanKatalog({searchParams}) {
   const params=await searchParams;
@@ -10,13 +11,17 @@ export default async function HalamanKatalog({searchParams}) {
   const category=String(params?.kategori||"").slice(0,80);
   const sort=String(params?.urut||"urutan");
   const page=Math.max(1,Number(params?.page)||1);
-  let daftarProduk=[],pages=1,error="",recentCatalog=[],daftarKategori=[],terlaris=new Set();
+  let daftarProduk=[],pages=1,error="",recentCatalog=[],daftarKategori=[],terlaris=new Set(),banners=[];
   try {
     const result=await productsPage({q,category,sort,page,size:12});
     daftarProduk=result.products;pages=result.pages;
     recentCatalog=(await productsPage({size:500})).products;
     [daftarKategori,terlaris]=await Promise.all([categories(),bestSellerIds()]);
   } catch {error="Katalog belum dapat dimuat. Periksa kembali beberapa saat lagi.";}
+  try {
+    const {data}=await catalogClient().from("banner").select("id,judul,teks,gambar_url,tautan").eq("aktif",true).order("urutan").order("id").limit(5);
+    banners=data||[];
+  } catch {}
   const pilihan = daftarProduk[0];
 
   return (
@@ -79,6 +84,13 @@ export default async function HalamanKatalog({searchParams}) {
         )}
       </section>
 
+      {banners.length > 0 && <section aria-label="Informasi dan penawaran Biblio" className="grid gap-4 py-8 md:grid-cols-2">
+        {banners.map(b=><article key={b.id} className="overflow-hidden rounded-xl border border-garis bg-permukaan">
+          {b.gambar_url && <img src={b.gambar_url} alt="" className="h-40 w-full object-cover" loading="lazy" />}
+          <div className="p-6"><h2 className="font-serif text-2xl">{b.judul}</h2>{b.teks&&<p className="mt-3 text-sm leading-7 text-teks-lembut">{b.teks}</p>}
+          {b.tautan&&<a href={b.tautan} className="mt-4 inline-block text-sm font-semibold text-utama underline" rel="noopener noreferrer">Lihat selengkapnya</a>}</div>
+        </article>)}
+      </section>}
       <section id="koleksi" aria-labelledby="judul-koleksi" className="scroll-mt-24 py-14 sm:py-20">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>

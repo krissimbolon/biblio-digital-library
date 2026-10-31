@@ -9,6 +9,7 @@ import { catalogClient } from "@/lib/supabase/catalog";
 import GaleriProduk from "@/components/GaleriProduk";
 import QuickActions from "@/components/QuickActions";
 import { kirimUlasan } from "@/app/produk/[id]/actions";
+import { getToko } from "@/lib/supabase/store";
 
 export async function generateMetadata({ params }) {
   const { id } = await params;
@@ -26,12 +27,13 @@ export default async function HalamanDetailProduk({ params, searchParams }) {
   const { id } = await params;
   const produk = await productById(id);
   if (!produk) notFound();
-  const [related, daftarKategori, terlaris, hasilVarian, hasilUlasan] = await Promise.all([
+  const [related, daftarKategori, terlaris, hasilVarian, hasilUlasan, toko] = await Promise.all([
     productsPage({ category: produk.kategori, size: 6 }),
     categories(),
     bestSellerIds(),
     catalogClient().from("produk_varian").select("id,nama,harga").eq("produk_id", produk.id).order("urutan").order("id"),
     catalogClient().from("ulasan").select("id,nama,rating,komentar,created_at").eq("produk_id", produk.id).eq("tampil", true).order("created_at", { ascending: false }).limit(100),
+    getToko(),
   ]);
   const recommendations = related.products.filter((item) => item.id !== produk.id).slice(0, 4);
   const kategori = daftarKategori.find((k) => k.nama === produk.kategori);
@@ -64,7 +66,7 @@ export default async function HalamanDetailProduk({ params, searchParams }) {
             {stok > 0 && terlaris.has(produk.id) && <span className="rounded-full bg-[#b4532a] px-3 py-1 text-xs font-bold text-white">Terlaris</span>}
           </div>
           <p className="max-w-prose text-base leading-8 text-teks-lembut">{produk.deskripsi}</p>
-          <TombolWhatsApp produk={produk} variants={hasilVarian.data || []} />
+          <TombolWhatsApp produk={produk} variants={hasilVarian.data || []} nomorToko={toko.nomorWhatsApp} />
           <LibraryActions id={produk.id} />
           <QuickActions id={produk.id} habis={stok === 0} />
         </div>
