@@ -9,6 +9,7 @@ export async function login(data) {
   const client=await sessionClient();
   if (!email || !password) redirect("/admin/login?error=1");
   const {data:result,error}=await client.auth.signInWithPassword({email,password});
+  if (error?.status===429) redirect("/admin/login?error=rate");
   if (error || !result.user || result.user.id!==process.env.BIBLIO_ADMIN_UID) {
     await client.auth.signOut();
     redirect("/admin/login?error=1");
