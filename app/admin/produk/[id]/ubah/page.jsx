@@ -1,24 +1,18 @@
 import { notFound } from "next/navigation";
 import NavAdmin from "@/components/NavAdmin";
 import FormProduk from "@/components/FormProduk";
-import CatatanBelumAktif from "@/components/CatatanBelumAktif";
-import { cariProdukContoh } from "@/lib/data-contoh";
+import { editProduct } from "@/app/admin/actions";
+import { requireAdmin } from "@/lib/supabase/server";
+import { productById } from "@/lib/supabase/catalog";
 
-// US-09 (bonus di jalur offline): ubah produk.
-export default async function HalamanUbahProduk({ params }) {
-  const { id } = await params;
-  const produk = cariProdukContoh(id);
-
-  if (!produk) {
-    notFound();
-  }
-
-  return (
-    <div className="flex flex-col gap-6 py-8">
-      <NavAdmin />
-      <h1 className="text-2xl font-extrabold">Ubah produk</h1>
-      <CatatanBelumAktif>Simpan perubahan belum berfungsi: lihat US-09.</CatatanBelumAktif>
-      <FormProduk produk={produk} labelTombol="Simpan perubahan" />
-    </div>
-  );
+export default async function HalamanUbahProduk({params,searchParams}) {
+  await requireAdmin();
+  const {id}=await params;
+  const book=await productById(id);
+  if (!book) notFound();
+  const q=await searchParams;
+  return <section className="flex flex-col gap-7 py-10">
+    <NavAdmin/><h1 className="font-serif text-3xl">Ubah buku</h1>
+    <FormProduk produk={book} labelTombol="Simpan perubahan" action={editProduct.bind(null,id)} error={q?.error}/>
+  </section>;
 }
