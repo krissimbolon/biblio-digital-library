@@ -10,6 +10,7 @@ import GaleriProduk from "@/components/GaleriProduk";
 import QuickActions from "@/components/QuickActions";
 import { kirimUlasan } from "@/app/produk/[id]/actions";
 import { getToko } from "@/lib/supabase/store";
+import TanyaBuku from "@/components/TanyaBuku";
 
 export async function generateMetadata({ params }) {
   const { id } = await params;
@@ -71,6 +72,7 @@ export default async function HalamanDetailProduk({ params, searchParams }) {
           <QuickActions id={produk.id} habis={stok === 0} />
         </div>
       </article>
+      <section className="border-t border-garis py-10"><TanyaBuku id={produk.id}/></section>
       <section className="border-t border-garis py-12" aria-labelledby="judul-ulasan">
         <div className="grid gap-10 md:grid-cols-2">
           <div>

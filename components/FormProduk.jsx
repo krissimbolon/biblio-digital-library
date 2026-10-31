@@ -1,5 +1,6 @@
 import Input from "@/components/Input";
 import Tombol from "@/components/Tombol";
+import DeskripsiBuku from "@/components/DeskripsiBuku";
 
 const pesanError = {
   invalid: "Periksa judul, harga, harga diskon (harus lebih kecil dari harga normal), stok, atau alamat gambar.",
@@ -38,6 +39,7 @@ export default function FormProduk({ produk = {}, labelTombol, action, error, ka
       </label>
       <Input label="URL galeri tambahan (satu per baris)" name="galeri_urls" textarea rows={3} defaultValue={(produk.galeri || []).join("\n")} />
       <Input label="Deskripsi" name="deskripsi" textarea defaultValue={produk.deskripsi || ""} maxLength={4000} />
+      <DeskripsiBuku />
       <label className="flex items-center gap-3 text-sm font-semibold">
         <input type="checkbox" name="aktif" defaultChecked={produk.aktif ?? true} className="h-4 w-4 accent-[var(--color-utama)]" />
         Tampilkan di katalog publik
