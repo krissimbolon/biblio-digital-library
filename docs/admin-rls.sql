@@ -10,6 +10,13 @@ as $$
   select exists(select 1 from public.biblio_admins a where a.user_id=auth.uid())
 $$;
 
+do $
+begin
+  if not exists (select 1 from public.biblio_admins) then
+    raise exception 'Daftarkan administrator lebih dulu.';
+  end if;
+end $;
+
 drop policy if exists "admin_baca_produk" on public.produk;
 drop policy if exists "admin_tambah_produk" on public.produk;
 drop policy if exists "admin_ubah_produk" on public.produk;
