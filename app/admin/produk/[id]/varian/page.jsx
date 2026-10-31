@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import NavAdmin from "@/components/NavAdmin";
-import { addVariant, deleteVariant } from "@/app/admin/actions";
+import { addVariant, updateVariant, deleteVariant } from "@/app/admin/actions";
 import { requireAdmin } from "@/lib/supabase/server";
 import { catalogClient, productById } from "@/lib/supabase/catalog";
 import Link from "next/link";
@@ -21,7 +21,13 @@ export default async function HalamanVarian({ params, searchParams }) {
     {query?.status && <p role="status" className="text-sm text-utama">Varian disimpan.</p>}
     <div className="space-y-3">
       {variants?.length ? variants.map(v=><div key={v.id} className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-garis p-4">
-        <span>{v.nama} — Rp {Number(v.harga).toLocaleString("id-ID")}</span>
+        <form action={updateVariant} className="flex flex-1 flex-wrap items-center gap-2">
+          <input type="hidden" name="produk_id" value={book.id}/>
+          <input type="hidden" name="varian_id" value={v.id}/>
+          <input name="nama" aria-label="Nama varian" defaultValue={v.nama} maxLength={60} required className="min-w-0 flex-1 rounded-md border border-garis bg-latar p-2 text-sm"/>
+          <input name="harga" aria-label="Harga varian" defaultValue={v.harga} min="0" max="2000000000" type="number" step="1" required className="w-32 rounded-md border border-garis bg-latar p-2 text-sm"/>
+          <button type="submit" className="text-sm font-semibold text-utama">Simpan</button>
+        </form>
         <form action={deleteVariant}><input type="hidden" name="produk_id" value={book.id}/><input type="hidden" name="varian_id" value={v.id}/><button className="text-sm font-semibold text-bahaya" type="submit">Hapus</button></form>
       </div>) : <p className="text-sm text-teks-lembut">Belum ada varian tambahan.</p>}
     </div>

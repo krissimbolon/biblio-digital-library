@@ -6,12 +6,14 @@ import { catalogClient } from "@/lib/supabase/catalog";
 import { slugify } from "@/lib/format";
 import { randomUUID } from "node:crypto";
 import { isAdminAllowed } from "@/lib/supabase/admin-access";
+import { biblioFingerprint, consumeLimit } from "@/lib/supabase/rate-limit";
 
 export async function login(data) {
   const email=String(data.get("email")||"").trim();
   const password=String(data.get("password")||"");
   const client=await sessionClient();
   if (!email || !password) redirect("/admin/login?error=1");
+  if (!(await consumeLimit("masuk", await biblioFingerprint(), 15 * 60, 8))) redirect("/admin/login?error=rate");
   const {data:result,error}=await client.auth.signInWithPassword({email,password});
   if (error?.status===429) redirect("/admin/login?error=rate");
   if (error || !result.user || !(await isAdminAllowed(result.user.id))) {
@@ -261,6 +263,25 @@ export async function addVariant(form) {
   revalidatePath("/produk/"+id);
   revalidatePath("/admin/produk/"+id+"/varian");
   redirect("/admin/produk/"+id+"/varian?status=tambah");
+}
+
+export async function updateVariant(form) {
+  const { user } = await requireAdmin();
+  const id = validId(form.get("produk_id"));
+  const variantId = validId(form.get("varian_id"));
+  const nama = String(form.get("nama") || "").trim();
+  const harga = angka(form, "harga");
+  if (!id || !variantId || !nama || nama.length > 60 || !Number.isSafeInteger(harga) || harga < 0 || harga > 2000000000)
+    redirect("/admin/produk/" + (id || "") + "/varian?error=invalid");
+  const db = catalogClient();
+  const { data: original } = await db.from("produk_varian").select("id").eq("id", variantId).eq("produk_id", id).maybeSingle();
+  if (!original) redirect("/admin/produk/" + id + "/varian?error=invalid");
+  const { error } = await db.from("produk_varian").update({ nama, harga }).eq("id", variantId).eq("produk_id", id);
+  if (error) redirect("/admin/produk/" + id + "/varian?error=save");
+  await catatLog(user, "Ubah varian", nama + " (#" + id + ")");
+  revalidatePath("/produk/" + id);
+  revalidatePath("/admin/produk/" + id + "/varian");
+  redirect("/admin/produk/" + id + "/varian?status=ubah");
 }
 
 export async function deleteVariant(form) {

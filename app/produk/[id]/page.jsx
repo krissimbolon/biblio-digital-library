@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import TombolWhatsApp from "@/components/TombolWhatsApp";
-import { productById, productsPage, categories, bestSellerIds } from "@/lib/supabase/catalog";
+import { productById, productsPage, categories, bestSellerIds, reviewSummary } from "@/lib/supabase/catalog";
 import KartuProduk from "@/components/KartuProduk";
 import LibraryActions from "@/components/LibraryActions";
 import { formatRupiah, hargaAkhir, adaDiskon, slugify } from "@/lib/format";
@@ -28,20 +28,21 @@ export default async function HalamanDetailProduk({ params, searchParams }) {
   const { id } = await params;
   const produk = await productById(id);
   if (!produk) notFound();
-  const [related, daftarKategori, terlaris, hasilVarian, hasilUlasan, toko] = await Promise.all([
+  const [related, daftarKategori, terlaris, hasilVarian, hasilUlasan, toko, ringkasan] = await Promise.all([
     productsPage({ category: produk.kategori, size: 6 }),
     categories(),
     bestSellerIds(),
     catalogClient().from("produk_varian").select("id,nama,harga").eq("produk_id", produk.id).order("urutan").order("id"),
     catalogClient().from("ulasan").select("id,nama,rating,komentar,created_at").eq("produk_id", produk.id).eq("tampil", true).order("created_at", { ascending: false }).limit(100),
     getToko(),
+    reviewSummary(produk.id),
   ]);
   const recommendations = related.products.filter((item) => item.id !== produk.id).slice(0, 4);
   const kategori = daftarKategori.find((k) => k.nama === produk.kategori);
   const stok = Number(produk.stok);
   const harga = hargaAkhir(produk);
   const ulasan = hasilUlasan.data || [];
-  const rataRating = ulasan.length ? (ulasan.reduce((total, u) => total + Number(u.rating), 0) / ulasan.length).toFixed(1) : null;
+  const rataRating = ringkasan.average;
   const status = (await searchParams)?.ulasan;
 
   return (
@@ -77,7 +78,7 @@ export default async function HalamanDetailProduk({ params, searchParams }) {
         <div className="grid gap-10 md:grid-cols-2">
           <div>
             <h2 id="judul-ulasan" className="font-serif text-2xl">Ulasan pembaca</h2>
-            <p className="mt-3 text-sm text-teks-lembut">{rataRating ? rataRating + " / 5 dari " + ulasan.length + " ulasan" : "Belum ada ulasan untuk buku ini."}</p>
+            <p className="mt-3 text-sm text-teks-lembut">{rataRating ? rataRating + " / 5 dari " + ringkasan.count + " ulasan" : "Belum ada ulasan untuk buku ini."}</p>
             <div className="mt-6 max-h-[480px] space-y-4 overflow-y-auto">
               {ulasan.map(u => <article key={u.id} className="rounded-lg border border-garis p-4">
                 <div className="flex flex-wrap justify-between gap-2"><strong>{u.nama}</strong><span className="text-sm text-utama" aria-label={u.rating+" dari 5 bintang"}>{"★".repeat(u.rating)}{"☆".repeat(5-u.rating)}</span></div>

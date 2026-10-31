@@ -12,6 +12,7 @@ export default async function Header() {
           <span className="hidden border-l border-garis pl-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-teks-lembut sm:inline">
             Digital Library
           </span>
+          <span className="hidden max-w-32 truncate text-[10px] text-teks-lembut xl:inline" title={toko.jamBuka}>{toko.jamBuka}</span>
         </Link>
         <nav aria-label="Navigasi utama" className="flex items-center gap-4 text-sm font-medium sm:gap-7">
           <Link href="/#koleksi" className="text-teks transition-colors hover:text-utama">Koleksi</Link>
