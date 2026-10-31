@@ -1,0 +1,25 @@
+name: Build and security checks
+on:
+  push:
+    branches: [main, bonus/biblio-integration]
+  pull_request:
+    branches: [main]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Check critical vulnerabilities
+        run: npm audit --audit-level=critical
+      - name: Production build
+        run: npm run build
