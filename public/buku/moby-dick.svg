@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="480" viewBox="0 0 360 480" role="img" aria-label="Sampul MOBY- DICK karya HERMAN MELVILLE">
+<rect width="360" height="480" fill="#193e50"/>
+<path d="M19 19H341V461H19Z" stroke="#f1eada" stroke-opacity=".22" fill="none"/>
+<text x="180" y="51" text-anchor="middle" fill="#f1eada" font-family="Arial,sans-serif" font-size="12" letter-spacing="4">BIBLIO · CLASSICS</text>
+<path d='M58 202q60-61 120 0t124 0 M58 222q60-61 120 0t124 0 M58 242q60-61 120 0t124 0' fill='none' stroke='#8faeb6' stroke-width='6'/><path d='M169 114l10 80 13-80' fill='#e2dbc7'/>
+<path d="M62 301H298" stroke="#f1eada" stroke-opacity=".42"/>
+<text x="180" y="334" text-anchor="middle" fill="#f1eada" font-family="Georgia,serif" font-size="38" font-weight="bold">MOBY-</text>
+<text x="180" y="370" text-anchor="middle" fill="#f1eada" font-family="Georgia,serif" font-size="35" font-weight="bold">DICK</text>
+<text x="180" y="417" text-anchor="middle" fill="#f1eada" font-family="Arial,sans-serif" font-size="11" letter-spacing="2">HERMAN MELVILLE</text>
+<text x="180" y="442" text-anchor="middle" fill="#f1eada" font-family="Georgia,serif" font-size="12">1851</text>
+</svg>

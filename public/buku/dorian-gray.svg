@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="480" viewBox="0 0 360 480" role="img" aria-label="Sampul THE PICTURE OF DORIAN GRAY karya OSCAR WILDE">
+<rect width="360" height="480" fill="#724942"/>
+<path d="M19 19H341V461H19Z" stroke="#f6ead8" stroke-opacity=".22" fill="none"/>
+<text x="180" y="51" text-anchor="middle" fill="#f6ead8" font-family="Arial,sans-serif" font-size="12" letter-spacing="4">BIBLIO · CLASSICS</text>
+<rect x='102' y='107' width='156' height='188' rx='1' fill='none' stroke='#d5b37e' stroke-width='11'/><rect x='119' y='124' width='122' height='155' fill='#4d332f'/><circle cx='180' cy='182' r='28' fill='#b58c75'/><path d='M129 271q0-69 51-69t51 69' fill='#a57b68'/>
+<path d="M62 301H298" stroke="#f6ead8" stroke-opacity=".42"/>
+<text x="180" y="334" text-anchor="middle" fill="#f6ead8" font-family="Georgia,serif" font-size="38" font-weight="bold">THE PICTURE</text>
+<text x="180" y="370" text-anchor="middle" fill="#f6ead8" font-family="Georgia,serif" font-size="24" font-weight="bold">OF DORIAN GRAY</text>
+<text x="180" y="417" text-anchor="middle" fill="#f6ead8" font-family="Arial,sans-serif" font-size="11" letter-spacing="2">OSCAR WILDE</text>
+<text x="180" y="442" text-anchor="middle" fill="#f6ead8" font-family="Georgia,serif" font-size="12">1890</text>
+</svg>

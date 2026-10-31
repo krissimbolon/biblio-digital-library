@@ -1,18 +1,27 @@
 import Link from "next/link";
-import { toko } from "@/lib/toko";
 
 export default function Footer() {
   return (
-    <footer className="mt-16 border-t border-garis bg-permukaan">
-      <div className="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-8 text-sm text-teks-lembut sm:flex-row sm:justify-between">
+    <footer className="mt-auto border-t border-garis bg-permukaan">
+      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 text-sm sm:grid-cols-[1.4fr_1fr] sm:px-6">
         <div>
-          <p className="font-bold text-teks">{toko.nama}</p>
-          <p>{toko.alamat}</p>
-          <p>{toko.jamBuka}</p>
+          <p className="font-serif text-2xl font-bold tracking-[-0.06em] text-utama">BIBLIO</p>
+          <p className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-teks-lembut">
+            Biblio Digital Library
+          </p>
+          <p className="mt-5 max-w-sm leading-6 text-teks-lembut">
+            Ruang untuk buku, pengetahuan, dan ide-ide yang melampaui zaman.
+          </p>
         </div>
-        <Link href="/admin" className="self-start underline underline-offset-4 hover:text-utama">
-          Masuk sebagai admin
-        </Link>
+        <div className="flex flex-col items-start gap-3 sm:items-end">
+          <Link href="/#koleksi" className="hover:text-utama">Jelajahi koleksi</Link>
+          <Link href="/#tentang" className="hover:text-utama">Tentang Biblio</Link>
+          <Link href="/admin/login" className="text-teks-lembut hover:text-utama">Masuk admin</Link>
+        </div>
+      </div>
+      <div className="mx-auto flex max-w-6xl flex-wrap justify-between gap-2 border-t border-garis px-4 py-5 text-xs text-teks-lembut sm:px-6">
+        <span>© 2026 Biblio Digital Library</span>
+        <span>Dikembangkan dengan perhatian pada pengalaman membaca.</span>
       </div>
     </footer>
   );
