@@ -1,4 +1,5 @@
 import "./globals.css";
+import { connection } from "next/server";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -8,7 +9,8 @@ export const metadata = {
   description: "Jelajahi karya sastra klasik dunia dan temukan bacaan yang bermakna di Biblio Digital Library.",
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  await connection();
   return (
     <html lang="id">
       <head>

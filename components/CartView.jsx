@@ -12,6 +12,11 @@ export default function CartView({ produk, nomor }) {
   const items=cart.map(x=>({book:produk.find(p=>Number(p.id)===Number(x.id)),qty:Math.max(1,Math.min(99,Number(x.qty)||1))})).filter(x=>x.book&&Number(x.book.stok)>0);
   const missing=cart.length-items.length;
   const total=items.reduce((s,x)=>s+hargaAkhir(x.book)*Math.min(x.qty,x.book.stok),0);
+  function catatPesanan() {
+    for (const {book} of items) {
+      navigator.sendBeacon?.("/api/wa-click",new Blob([JSON.stringify({id:book.id})],{type:"application/json"}));
+    }
+  }
   const pesan="Halo Biblio, saya ingin memesan:\n"+items.map((x,i)=>(i+1)+". "+x.book.nama+" — "+Math.min(x.qty,x.book.stok)+" × "+formatRupiah(hargaAkhir(x.book))+" = "+formatRupiah(Math.min(x.qty,x.book.stok)*hargaAkhir(x.book))).join("\n")+"\nTotal: "+formatRupiah(total)+".";
   return <div className="space-y-6">
     {missing>0&&<p role="status" className="text-sm text-bahaya">{missing} buku tidak tersedia atau stoknya habis. Buku tersebut tidak dimasukkan ke pesanan.</p>}
@@ -24,7 +29,7 @@ export default function CartView({ produk, nomor }) {
     </div>)}
     {items.length>0&&<div className="flex flex-wrap items-center justify-between gap-4 rounded-lg bg-permukaan p-5">
       <div><p className="text-sm text-teks-lembut">Total pemesanan</p><strong className="font-serif text-2xl">{formatRupiah(total)}</strong></div>
-      <a href={"https://wa.me/"+nomor+"?text="+encodeURIComponent(pesan)} target="_blank" rel="noopener noreferrer" className="rounded-md bg-utama px-5 py-3 text-sm font-semibold text-white">Pesan semua via WhatsApp</a>
+      <a href={"https://wa.me/"+nomor+"?text="+encodeURIComponent(pesan)} target="_blank" rel="noopener noreferrer" onClick={catatPesanan} className="rounded-md bg-utama px-5 py-3 text-sm font-semibold text-white">Pesan semua via WhatsApp</a>
     </div>}
   </div>;
 }

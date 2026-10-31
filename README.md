@@ -66,3 +66,7 @@ Dibuat dengan sepenuh hati oleh Chris Simbolon.
 ## Kebijakan keamanan
 
 Aturan akses database dan pembatasan permintaan tercantum dalam `docs/biblio-security.sql`. Halaman administrator hanya tersedia untuk akun aktif yang telah tercatat. Kebijakan keamanan konten halaman menggunakan nonce per permintaan. Pengujian akses, pembatasan kiriman, dan dependensi tercantum di `docs/checklist-keamanan.md`.
+
+## Ringkasan minat koleksi
+
+Jumlah klik pemesanan per buku dihitung melalui view `public.biblio_click_totals` sesuai `docs/biblio-analytics.sql`. Ringkasan hanya menampilkan produk yang tercatat dalam katalog dan tidak memuat identitas pengunjung.
