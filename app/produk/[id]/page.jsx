@@ -1,17 +1,28 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import TombolWhatsApp from "@/components/TombolWhatsApp";
-import { cariProdukContoh } from "@/lib/data-contoh";
+import { productById, productsPage } from "@/lib/supabase/catalog";
+import KartuProduk from "@/components/KartuProduk";
 import { formatRupiah } from "@/lib/format";
 
 // US-02 akan mengganti sumber data ini dengan pembacaan Supabase di server.
+export async function generateMetadata({params}) {
+  const {id}=await params;
+  const produk=await productById(id);
+  if (!produk) return {title:"Buku tidak ditemukan | Biblio"};
+  return {title:produk.nama+" | Biblio",description:produk.deskripsi?.slice(0,160)||produk.nama,
+    openGraph:{title:produk.nama,description:produk.deskripsi?.slice(0,160)||produk.nama,images:produk.foto_url?[{url:produk.foto_url}]:[]}};
+}
+
 export default async function HalamanDetailProduk({ params }) {
   const { id } = await params;
-  const produk = cariProdukContoh(id);
+  const produk = await productById(id);
   if (!produk) notFound();
+  const related=await productsPage({category:produk.kategori,size:6});
+  const recommendations=related.products.filter(item=>item.id!==produk.id).slice(0,4);
 
   return (
-    <article className="grid gap-10 py-10 sm:py-16 md:grid-cols-[0.9fr_1.1fr] md:gap-16">
+    <><article className="grid gap-10 py-10 sm:py-16 md:grid-cols-[0.9fr_1.1fr] md:gap-16">
       <div className="rounded-lg border border-garis bg-permukaan px-[18%] py-10">
         <img src={produk.foto_url} alt={"Sampul " + produk.nama} className="mx-auto aspect-[3/4] w-full max-w-[320px] rounded-sm object-cover shadow-xl" />
       </div>
@@ -25,5 +36,6 @@ export default async function HalamanDetailProduk({ params }) {
         <TombolWhatsApp produk={produk} />
       </div>
     </article>
+    {recommendations.length>0 && <section className="border-t border-garis py-12"><h2 className="mb-8 font-serif text-2xl">Buku terkait</h2><div className="grid grid-cols-2 gap-5 md:grid-cols-4">{recommendations.map(book=><KartuProduk key={book.id} produk={book}/>)}</div></section>}</>
   );
 }
