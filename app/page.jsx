@@ -1,20 +1,21 @@
 import Link from "next/link";
 import KartuProduk from "@/components/KartuProduk";
 import RecentlyViewed from "@/components/RecentlyViewed";
-import { productsPage } from "@/lib/supabase/catalog";
+import { productsPage, categories, bestSellerIds } from "@/lib/supabase/catalog";
 import { toko } from "@/lib/toko";
 
 export default async function HalamanKatalog({searchParams}) {
   const params=await searchParams;
   const q=String(params?.q||"").slice(0,80);
   const category=String(params?.kategori||"").slice(0,80);
-  const sort=String(params?.urut||"terbaru");
+  const sort=String(params?.urut||"urutan");
   const page=Math.max(1,Number(params?.page)||1);
-  let daftarProduk=[],pages=1,error="",recentCatalog=[];
+  let daftarProduk=[],pages=1,error="",recentCatalog=[],daftarKategori=[],terlaris=new Set();
   try {
     const result=await productsPage({q,category,sort,page,size:12});
     daftarProduk=result.products;pages=result.pages;
     recentCatalog=(await productsPage({size:500})).products;
+    [daftarKategori,terlaris]=await Promise.all([categories(),bestSellerIds()]);
   } catch {error="Katalog belum dapat dimuat. Periksa kembali beberapa saat lagi.";}
   const pilihan = daftarProduk[0];
 
@@ -90,11 +91,14 @@ export default async function HalamanKatalog({searchParams}) {
             Karya klasik yang membuka jalan bagi percakapan lintas generasi.
           </p>
         </div>
-        <form className="mb-8 grid gap-3 rounded-lg border border-garis bg-latar p-4 sm:grid-cols-[1fr_150px_140px_auto]">
+        <form className="mb-8 grid gap-3 rounded-lg border border-garis bg-latar p-4 sm:grid-cols-[1fr_170px_160px_auto]">
           <input name="q" aria-label="Cari judul buku" defaultValue={q} placeholder="Cari judul buku" className="min-w-0 rounded-md border border-garis bg-latar px-3 py-2 text-sm" />
-          <input name="kategori" aria-label="Kategori buku" defaultValue={category} placeholder="Kategori" className="min-w-0 rounded-md border border-garis bg-latar px-3 py-2 text-sm" />
+          <select name="kategori" aria-label="Kategori buku" defaultValue={category} className="min-w-0 rounded-md border border-garis bg-latar px-3 py-2 text-sm">
+            <option value="">Semua kategori</option>
+            {daftarKategori.map(k=><option key={k.id} value={k.nama}>{k.nama}</option>)}
+          </select>
           <select name="urut" aria-label="Urutkan katalog" defaultValue={sort} className="rounded-md border border-garis bg-latar px-3 py-2 text-sm">
-            <option value="terbaru">Terbaru</option><option value="termurah">Termurah</option><option value="termahal">Termahal</option>
+            <option value="urutan">Pilihan Biblio</option><option value="terbaru">Terbaru</option><option value="termurah">Termurah</option><option value="termahal">Termahal</option>
           </select>
           <button type="submit" className="rounded-md bg-utama px-5 py-2 text-sm font-semibold text-white">Cari</button>
         </form>
@@ -102,7 +106,7 @@ export default async function HalamanKatalog({searchParams}) {
         {!error && daftarProduk.length > 0 ? (
           <div className="grid grid-cols-2 gap-x-4 gap-y-9 sm:gap-x-6 lg:grid-cols-3 lg:gap-x-8">
             {daftarProduk.map((produk) => (
-              <KartuProduk key={produk.id} produk={produk} />
+              <KartuProduk key={produk.id} produk={produk} terlaris={terlaris.has(produk.id)} />
             ))}
           </div>
         ) : (
